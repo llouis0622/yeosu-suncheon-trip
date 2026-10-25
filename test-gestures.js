@@ -1,0 +1,13 @@
+// Exercise the shipped gesture state machine independently of any device emulator.
+const vm=require('node:vm'),fs=require('node:fs'),assert=require('node:assert/strict');
+const source=fs.readFileSync('ui.js','utf8');let painted=0;
+const captured=new Set(),viewport={offsetWidth:600,offsetHeight:400,clientLeft:0,clientTop:0,getBoundingClientRect:()=>({left:10,top:20,width:600,height:400}),classList:{add(){},remove(){}},setPointerCapture:id=>captured.add(id),hasPointerCapture:id=>captured.has(id),releasePointerCapture:id=>captured.delete(id)};
+const context={state:{width:600,height:400,camera:{x:0,y:0,w:60,h:40},tween:null},pointers:new Map(),gesture:null,pendingTap:null,ignoreClickUntil:0,$:()=>viewport,E:{clamp:(n,a,b)=>Math.min(b,Math.max(a,n))},performance:{now:()=>1000},paintMap:()=>painted++,pauseMap:()=>{},Math,Boolean};vm.createContext(context);
+vm.runInContext(source.slice(source.indexOf('function position(e)'),source.indexOf("$('viewport').addEventListener('pointerdown'")),context);
+const e=(id,x,y,type='pointermove',pointerType='touch')=>({pointerId:id,clientX:x+10,clientY:y+20,type,pointerType,button:0,target:{closest:()=>null},preventDefault(){}});
+context.onPointerDown(e(1,200,200,'pointerdown'));context.onPointerMove(e(1,204,203));assert.equal(painted,0,'touch jitter does not pan');context.onPointerEnd(e(1,204,203,'pointerup'));assert(context.pendingTap,'tap retained');
+context.onPointerDown(e(2,200,200,'pointerdown'));context.onPointerMove(e(2,260,200));assert.equal(context.state.camera.x,-6,'drag translates exact CSS pixels');context.onPointerEnd(e(2,260,200,'pointerup'));assert.equal(context.pendingTap,null,'drag does not activate pin');assert(context.ignoreClickUntil>1000,'synthetic click after drag suppressed');
+context.state.camera={x:0,y:0,w:60,h:40};context.onPointerDown(e(3,200,200,'pointerdown'));context.onPointerDown(e(4,400,200,'pointerdown'));context.onPointerMove(e(4,600,200));assert.equal(context.state.camera.w,30,'pinch doubles zoom');assert.equal(context.state.camera.x,10,'pinch midpoint remains anchored');
+context.onPointerEnd(e(4,600,200,'pointerup'));const before={...context.state.camera};context.onPointerMove(e(3,230,200));assert.equal(context.state.camera.x,before.x-1.5,'two-to-one transition does not jump');context.onPointerEnd(e(3,230,200,'pointercancel'));assert.equal(context.pointers.size,0,'cancel clears touch');assert.equal(context.pendingTap,null,'cancel does not select');
+context.onPointerDown(e(5,100,100,'pointerdown'));context.clearGesture();assert.equal(context.pointers.size,0,'blur/resize clears all gestures');assert.equal(captured.size,0,'captures released');console.log('12 touch/drag/pinch/cancel checks passed. Physical device testing not performed.');
+
