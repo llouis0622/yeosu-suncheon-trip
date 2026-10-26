@@ -13,7 +13,7 @@ for tool in python3 node; do
   command -v "$tool" >/dev/null || { echo "$tool 설치가 필요합니다."; exit 1; }
 done
 python3 build.py
-for test in test-engine.js test-ui.js test-responsive.js test-gestures.js test-playback.js; do
+for test in test-engine.js test-ui.js test-responsive.js test-gestures.js test-playback.js test-timeline.js; do
   node "$test"
 done
 python3 test-build.py
@@ -45,17 +45,30 @@ elif gh repo view "$repo" >/dev/null 2>&1; then
   echo "$repo 저장소가 이미 있습니다. 새 이름을 지정하세요: bash deploy.sh yeosu-suncheon-trip-2"; exit 1
 fi
 # 이 프로젝트의 소스와 빌드 결과만 커밋합니다.
-git add .gitignore README.md deploy.sh build.py ui.css ui.js engine.js data.json map-fragment.html dist test-*.js test-build.py
+git add .gitignore README.md QA.md deploy.sh publish.sh build.py ui.css ui.js engine.js data.json map-fragment.html dist/index.html dist/.nojekyll test-*.js test-build.py test-browser.html
 if ! git diff --cached --quiet; then
-  git -c user.name="$owner" -c user.email="$owner@users.noreply.github.com" commit -m 'Build Yeosu and Suncheon travel planner'
+  git -c user.name="$owner" -c user.email="$owner@users.noreply.github.com" commit -m 'Enable ten-minute timeline drag and resize'
 fi
 if [ -z "$remote" ]; then
   gh repo create "$repo" --public --source=. --remote=origin --description '2026년 11월 28–30일 여수·순천 여행 지도와 일정 편집기'
 fi
 gh auth setup-git
 git push -u origin main
-# gh-pages에는 정적 사이트만 게시합니다. 강제 푸시는 하지 않습니다.
-pages_commit=$(git subtree split --prefix dist main)
+# git-subtree 확장이나 전역 Git 작성자 설정 없이 정적 파일을 게시합니다.
+# 현재 gh-pages를 부모로 이어서 게시하며 강제 푸시는 하지 않습니다.
+pages_tree=$(git rev-parse 'main:dist')
+pages_parent=''
+if git ls-remote --exit-code --heads origin gh-pages >/dev/null 2>&1; then
+  git fetch origin gh-pages
+  pages_parent=$(git rev-parse FETCH_HEAD)
+fi
+if [ -n "$pages_parent" ] && [ "$(git rev-parse "$pages_parent^{tree}")" = "$pages_tree" ]; then
+  pages_commit=$pages_parent
+else
+  parent_args=()
+  if [ -n "$pages_parent" ]; then parent_args=(-p "$pages_parent"); fi
+  pages_commit=$(git -c user.name="$owner" -c user.email="$owner@users.noreply.github.com" commit-tree "$pages_tree" "${parent_args[@]}" -m 'Deploy Yeosu and Suncheon travel planner')
+fi
 git push origin "$pages_commit:refs/heads/gh-pages"
 if gh api "repos/$repo/pages" >/dev/null 2>&1; then
   gh api --method PUT "repos/$repo/pages" -f 'source[branch]=gh-pages' -f 'source[path]=/' >/dev/null
@@ -80,7 +93,11 @@ from pathlib import Path
 html = Path(sys.argv[1]).read_text()
 sys.exit(0 if f'name="app-build" content="{sys.argv[2]}"' in html and '<title>여수-순천 여행</title>' in html else 1)
 PY
-      then echo "게시된 버전 확인 완료: $url"; exit 0; fi
+      then
+        echo "게시된 버전 확인 완료: $url"
+        if [ "${TRIP_NO_OPEN:-0}" != 1 ] && command -v open >/dev/null; then open "$url" || true; fi
+        exit 0
+      fi
     fi
   fi
   sleep 10
@@ -89,4 +106,3 @@ echo "확인 시간이 초과됐습니다. 배포 상태: https://github.com/$re
 echo "사이트: $url"
 echo '배포가 진행 중일 수 있습니다. Actions에서 완료 여부를 확인하세요.'
 exit 2
-

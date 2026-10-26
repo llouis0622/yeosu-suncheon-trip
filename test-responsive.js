@@ -27,8 +27,8 @@ for(const [w,h] of sizes){
   if(w<=900&&run('plan().items[state.day].length'))check(el('planner').innerHTML.includes('sequence-list vertical'),'compact visits use vertical cards');
   const uid=run('plan().items[0][0]?.uid');
   if(uid){
-   const old=run('plan().items[0][0].duration');context.adjustDuration(uid,15);
-   check(run('plan().items[0][0].duration')===Math.min(720,old+15),'inline duration edit survives responsive rendering');
+   const old=run('plan().items[0][0].duration');context.adjustDuration(uid,10);
+   check(run('plan().items[0][0].duration')===Math.min(720,old+10),'inline duration edit survives responsive rendering');
    context.historyStep();check(run('plan().items[0][0].duration')===old,'undo restores edited duration');
    context.moveStop(uid,1,0);check(run('plan().items[1][0].uid')===uid,'move between dates');
    context.historyStep();check(run('plan().items[0][0].uid')===uid,'undo move');
@@ -67,4 +67,3 @@ check(el('dialogBody').innerHTML===before,'search preserves input node and keybo
 input.value='unlikely-no-matching-place';for(const f of events.input)f({target:input,isComposing:false});
 check(results.innerHTML.includes('조건에 맞는 장소가 없습니다.'),'empty search is explained');
 console.log(`${checks} responsive interaction checks passed for ${sizes.length} viewport configurations and all 4 courses. Browser geometry and physical devices NOT verified.`);
-

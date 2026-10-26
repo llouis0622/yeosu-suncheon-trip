@@ -16,7 +16,7 @@ const context={TripEngine:E,document:{getElementById:element},localStorage:{getI
 vm.createContext(context);
 vm.runInContext(source.slice(0,source.indexOf("$('viewport').addEventListener('pointerdown'")),context);
 vm.runInContext(source.slice(source.indexOf('function resizeMap('),source.indexOf('new ResizeObserver(')),context);
-vm.runInContext('for(const name of ["renderHeader","renderRegions","renderCourseBar","renderCandidatePanel","renderPlanner","renderPins","updatePins","closeRegions"])this[name]=()=>{};',context);
+vm.runInContext('for(const name of ["cancelTimeline","renderHeader","renderRegions","renderCourseBar","renderCandidatePanel","renderPlanner","renderPins","updatePins","closeRegions"])this[name]=()=>{};',context);
 const run=code=>vm.runInContext(code,context);
 const check=(value,message)=>{assert(value,message);checks++;};
 function frames(ms){for(let elapsed=0;elapsed<ms;elapsed+=25){now+=25;context.tick(now);}}
@@ -116,4 +116,3 @@ for(const d of DATA)for(let ci=0;ci<d.courses.length;ci++){
 }
 check(scrolled>0,'starting playback brings the map into view');
 console.log(`${checks} playback checks passed across ${routes} recommended route/day combinations and 4 map sizes. No browser rendering or physical device test performed.`);
-

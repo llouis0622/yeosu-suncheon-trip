@@ -39,7 +39,7 @@ function travel(r,a,b,mode='taxi',override){
 function createPlan(r,index=0){
  index=clamp(Math.trunc(finite(index,0)),0,r.courses.length-1);
  const c=r.courses[index];
- return {version:3,region:r.id,baseCourse:index,name:c.name,hotel:c.hotel||r.points.find(x=>x.type==='hotel').id,friday:false,departFriday:1140,departSaturday:450,busanAccess:30,starts:[540,540,540],mode:'mixed',transferDeparture:1200,transferMode:'rail',returnDeparture:870,arrivalRide:147,transferRide:25,returnRide:158,delayBuffer:30,hotelBudget:300000,luggage:false,extra:0,items:c.days.map((ids,d)=>ids.map((id,i)=>({uid:r.id+'-'+index+'-'+d+'-'+i,poi:id,duration:c.durations?.[id]||r.points.find(x=>x.id===id)?.visitMin||60,start:c.startTimes?.[id]??null,mode:c.modes?.[id]||null,travel:null})))};
+ return {version:3,region:r.id,baseCourse:index,name:c.name,hotel:c.hotel||r.points.find(x=>x.type==='hotel').id,friday:false,departFriday:1140,departSaturday:450,busanAccess:30,starts:[540,540,540],mode:'mixed',transferDeparture:1200,transferMode:'rail',returnDeparture:870,arrivalRide:147,transferRide:25,returnRide:158,delayBuffer:30,hotelBudget:300000,luggage:false,extra:0,legTiming:{},hotelStarts:[null,null],items:c.days.map((ids,d)=>ids.map((id,i)=>({uid:r.id+'-'+index+'-'+d+'-'+i,poi:id,duration:Math.max(10,Math.floor((c.durations?.[id]||r.points.find(x=>x.id===id)?.visitMin||60)/10)*10),start:c.startTimes?.[id]??null,mode:c.modes?.[id]||null,travel:null})))};
 }
 function normalizePlan(r,input){
  if(!input||!Array.isArray(input.items)||input.items.length!==3)throw Error('3일 일정 형식이 아닙니다.');
@@ -49,7 +49,10 @@ function normalizePlan(r,input){
  for(const [field,min,max] of [['departSaturday',240,1080],['transferDeparture',960,1380],['returnDeparture',720,1200],['busanAccess',0,180],['arrivalRide',60,360],['transferRide',10,180],['returnRide',60,360],['delayBuffer',0,120],['hotelBudget',0,3000000],['extra',0,10000000]])p[field]=clamp(finite(input[field],p[field]),min,max);
  p.transferMode=input.transferMode==='bus'?'bus':'rail';p.mode=modes.includes(input.mode)?input.mode:p.mode;
  p.starts=[0,1,2].map(i=>clamp(finite(input.starts?.[i],p.starts[i]),300,1320));
- p.items=input.items.map((items,d)=>{if(!Array.isArray(items))throw Error('일자별 장소 배열이 필요합니다.');return items.slice(0,30).filter(x=>x&&r.points.some(v=>v.id===x.poi&&!['hotel','transit'].includes(v.type))).map((x,i)=>({uid:r.id+'-saved-'+d+'-'+i,poi:x.poi,duration:clamp(finite(x.duration,60),15,720),start:x.start==null?null:clamp(finite(x.start,0),0,1439),mode:modes.includes(x.mode)?x.mode:null,travel:x.travel==null?null:clamp(finite(x.travel,0),0,600)}));});
+ p.hotelStarts=[0,1].map(i=>input.hotelStarts?.[i]==null?null:clamp(finite(input.hotelStarts[i],0),0,1430));
+ p.legTiming={};for(const [k,v] of Object.entries(input.legTiming||{}).slice(0,200)){if(/^[012]:[a-zA-Z0-9_>:.-]{1,160}$/.test(k)&&v&&typeof v==='object')p.legTiming[k]={start:v.start==null?null:clamp(finite(v.start,0),0,1430),duration:v.duration==null?null:clamp(finite(v.duration,10),10,600)};}
+ const usedUids=new Set();
+ p.items=input.items.map((items,d)=>{if(!Array.isArray(items))throw Error('일자별 장소 배열이 필요합니다.');return items.slice(0,30).filter(x=>x&&r.points.some(v=>v.id===x.poi&&!['hotel','transit'].includes(v.type))).map((x,i)=>{let uid=String(x.uid||'');if(!/^[a-zA-Z0-9_.-]{1,120}$/.test(uid)||usedUids.has(uid))uid=r.id+'-saved-'+d+'-'+i;while(usedUids.has(uid))uid+='x';usedUids.add(uid);return{uid,poi:x.poi,duration:Math.max(10,Math.floor(clamp(finite(x.duration,60),10,720)/10)*10),start:x.start==null?null:clamp(finite(x.start,0),0,1439),mode:modes.includes(x.mode)?x.mode:null,travel:x.travel==null?null:clamp(finite(x.travel,0),0,600)};});});
  return p;
 }
 function isClosed(q,day){const h=q.hours||{},dateISO=['2026-11-28','2026-11-29','2026-11-30'][day];return(h.closedDays||[]).includes([6,0,1][day])||(h.closedDates||[]).includes(dateISO);}
@@ -61,12 +64,13 @@ function schedule(r,p){
  const ticketSeen=new Set();
  function warn(d,text){d.warnings.push(text);out.warnings.push(text);}
  function add(d,kind,start,end,point,title,extra={}){const b={kind,start,end,poi:point?.id,title:title||point?.name,...extra};d.blocks.push(b);if(point&&kind!=='wait')out.steps.push({day:d.day,poi:point.id,start,end,uid:extra.uid,kind});return b;}
- function leg(d,a,b,t,mode=p.mode,override,uid){const v=travel(r,a,b,mode,override);if(v.minutes){add(d,'travel',t,t+v.minutes,b,a.name+' → '+b.name,{...v,from:a.id,to:b.id,uid:uid?'travel-'+uid:undefined});out.edges.push({from:a.id,to:b.id,day:d.day,mode:v.mode,minutes:v.minutes});d.travelMin+=v.minutes;out.routeCoverage[v.onsite?'onsite':v.verified?'verified':v.manual?'manual':'estimate']++;if(v.mode==='taxi')out.costParts.local+=Math.max(5000,Math.ceil((3500+(v.meters?v.meters/1000:km(a,b)*1.6)*1500)/1000)*1000);else if(v.mode==='transit')out.costParts.local+=5000;}return t+v.minutes;}
+ function leg(d,a,b,t,mode=p.mode,override,uid){const editKey=d.day+':'+a.id+'>'+b.id+(uid?':'+uid:''),custom=p.legTiming?.[editKey];if(custom?.start>t){add(d,'wait',t,custom.start,null,'이동 시작까지 여유');t=custom.start;}const v=travel(r,a,b,mode,custom?.duration??override);if(v.minutes){add(d,'travel',t,t+v.minutes,b,a.name+' → '+b.name,{...v,from:a.id,to:b.id,uid:uid?'travel-'+uid:undefined,edit:{key:'leg:'+editKey,type:'leg',legKey:editKey}});out.edges.push({from:a.id,to:b.id,day:d.day,mode:v.mode,minutes:v.minutes});d.travelMin+=v.minutes;out.routeCoverage[v.onsite?'onsite':v.verified?'verified':v.manual?'manual':'estimate']++;if(v.mode==='taxi')out.costParts.local+=Math.max(5000,Math.ceil((3500+(v.meters?v.meters/1000:km(a,b)*1.6)*1500)/1000)*1000);else if(v.mode==='transit')out.costParts.local+=5000;}return t+v.minutes;}
  function service(d,a,b,ready,target,ride,mode,buffer,label){
+  const which=a.id==='busan'?'outbound':b.id==='busan'?'return':'transfer',fields={outbound:['departSaturday','arrivalRide',240,1080,60,360],transfer:['transferDeparture','transferRide',960,1380,10,180],return:['returnDeparture','returnRide',720,1200,60,360]}[which];
   let depart=Math.max(target,ready+20);
   if(ready+20>target)warn(d,label+': 승차 준비 포함 도착 '+time(ready+20)+'가 목표 출발 '+time(target)+'보다 늦습니다. 장소를 줄이거나 실제 후속편으로 시각을 바꿔주세요.');
   add(d,'wait',ready,depart,null,'승차 준비 20분 · 출발 전 여유');
-  add(d,'travel',depart,depart+ride,b,a.name+' → '+b.name,{minutes:ride,low:ride,high:ride+buffer,mode,from:a.id,to:b.id,note:label+' · 계획 출발 '+time(depart)+'. 여행일 확정 배차가 아닌 편집 가능한 참고 시간입니다. 지연 여유 '+buffer+'분은 다음 블록에 별도 반영됩니다.',sourceUrl:mode==='rail'?'https://www.korail.com/':a.id==='busan'?'https://www.kobus.co.kr/':'https://txbus.t-money.co.kr/',scheduled:false});
+  add(d,'travel',depart,depart+ride,b,a.name+' → '+b.name,{minutes:ride,low:ride,high:ride+buffer,mode,from:a.id,to:b.id,note:label+' · 계획 출발 '+time(depart)+'. 여행일 확정 배차가 아닌 편집 가능한 참고 시간입니다. 지연 여유 '+buffer+'분은 다음 블록에 별도 반영됩니다.',sourceUrl:mode==='rail'?'https://www.korail.com/':a.id==='busan'?'https://www.kobus.co.kr/':'https://txbus.t-money.co.kr/',scheduled:false,edit:{key:'service:'+which,type:'service',fields}});
   out.edges.push({from:a.id,to:b.id,day:d.day,mode,minutes:ride});d.travelMin+=ride;
   if(buffer)add(d,'wait',depart+ride,depart+ride+buffer,null,'이동 지연 여유 '+buffer+'분');
   return depart+ride+buffer;
@@ -79,7 +83,7 @@ function schedule(r,p){
    add(d,'origin',start,ready,busan,'사상터미널까지 이동 · '+p.busanAccess+'분');
    t=service(d,busan,ysHub,ready,p.departSaturday,p.arrivalRide,'bus',p.delayBuffer,'부산 → 여수 첫차 참고안');prev=ysHub;if(p.luggage){add(d,'wait',t,t+15,null,'여수터미널 짐 보관');t+=15;}
   }else{
-   t=p.starts[day];prev=hotel;add(d,'hotel',0,t,hotel,day===2?'숙박 · 조식 · 체크아웃 준비':'숙박 · 조식');
+   t=p.starts[day];prev=hotel;add(d,'hotel',0,t,hotel,day===2?'숙박 · 조식 · 체크아웃 준비':'숙박 · 조식',{edit:{key:'morning:'+day,type:'morning',day,parts:['end']}});
    if(day===2){add(d,'hotel',t,t+20,hotel,'체크아웃 · 짐 보관 또는 휴대');t+=20;if(t>(hotel.checkOutMin||660))warn(d,'체크아웃이 '+time(t)+'입니다. 숙소 퇴실 시각을 확인하세요.');}
   }
   for(const item of p.items[day]){
@@ -89,11 +93,12 @@ function schedule(r,p){
    const h={...(q.hours||{}),...(q.hours?.byDay?.[[6,0,1][day]]||{})};
    if(isClosed(q,day))warn(d,q.name+': '+date(day)+' 휴무와 겹칩니다. 다른 날짜 또는 장소를 선택하세요.');
    if(q.city!==(day===0?'여수':'순천'))warn(d,q.name+': '+date(day)+'의 기본 도시와 다릅니다. 도시 간 추가 이동을 확인하세요.');
-   if(Number.isFinite(h.open)&&t<h.open){add(d,'wait',t,h.open,null,q.name+' 개장 대기');t=h.open;}
-   const duration=clamp(finite(item.duration,q.visitMin||60),15,720);
-   for(const [start,end] of h.breaks||[])if(t<end&&t+duration>start){add(d,'wait',t,end,null,q.name+' 준비시간 이후 방문');t=end;}
+   if(Number.isFinite(h.open)&&t<h.open){if(item.start==null){add(d,'wait',t,h.open,null,q.name+' 개장 대기');t=h.open;}else warn(d,q.name+': 지정한 시간이 개장 '+time(h.open)+' 이전입니다.');}
+   const duration=Math.max(10,Math.floor(clamp(finite(item.duration,q.visitMin||60),10,720)/10)*10);
+   for(const [start,end] of h.breaks||[])if(t<end&&t+duration>start){if(item.start==null){add(d,'wait',t,end,null,q.name+' 준비시간 이후 방문');t=end;}else warn(d,q.name+': 준비시간 '+time(start)+'–'+time(end)+'와 겹칩니다.');}
+   const aligned=Math.ceil(t/10)*10;if(aligned>t){add(d,'wait',t,aligned,null,'10분 칸에 맞춘 여유');t=aligned;}
    if(Number.isFinite(h.lastEntry)&&t>h.lastEntry)warn(d,q.name+': 입장마감 '+time(h.lastEntry)+' 이후 도착입니다.');
-   add(d,'visit',t,t+duration,q,null,{uid:item.uid,duration});d.visitMin+=duration;
+   add(d,'visit',t,t+duration,q,null,{uid:item.uid,duration,edit:{key:'visit:'+item.uid,type:'visit',uid:item.uid,day}});d.visitMin+=duration;
    if(Number.isFinite(h.close)&&t+duration>h.close)warn(d,q.name+': 계획 종료 '+time(t+duration)+'가 마감 '+time(h.close)+'보다 늦습니다.');
    if(q.type==='food'||q.type==='cafe')out.costParts.food+=(q.cost??(q.type==='food'?18000:8000))*2;
    else {const ticket=q.ticketGroup?day+':'+q.ticketGroup:null;if(!ticket||!ticketSeen.has(ticket)){out.costParts.tickets+=(q.cost||0)*2;if(ticket)ticketSeen.add(ticket);}}
@@ -109,7 +114,7 @@ function schedule(r,p){
    if(t>1080)warn(d,'부산 도착 '+time(t)+' — 18:00 목표보다 '+(t-1080)+'분 늦습니다.');
    else if(t>1050)warn(d,'부산 도착 '+time(t)+' — 18시까지 여유가 30분 미만입니다.');
   }else t=leg(d,prev,hotel,t);
-  if(day<2){const checkin=Math.max(t,day===0?(hotel.checkInMin||900):0);if(checkin>t)add(d,'wait',t,checkin,null,'체크인 전 여유');add(d,'hotel',checkin,Math.max(1440,checkin+15),hotel,'순천 · 같은 객실에서 '+(day===0?'첫째':'둘째')+' 밤');if(checkin>1320)warn(d,'숙소 도착 '+time(checkin)+'입니다. 늦은 체크인 가능 여부를 확인하세요.');}
+  if(day<2){const checkin=Math.max(t,day===0?(hotel.checkInMin||900):0,p.hotelStarts?.[day]||0);if(checkin>t)add(d,'wait',t,checkin,null,'체크인 전 여유');add(d,'hotel',checkin,Math.max(1440,checkin+15),hotel,'순천 · 같은 객실에서 '+(day===0?'첫째':'둘째')+' 밤',{edit:{key:'night:'+day,type:'night',day,parts:['start']}});if(checkin>1320)warn(d,'숙소 도착 '+time(checkin)+'입니다. 늦은 체크인 가능 여부를 확인하세요.');}
   if(t>1440)warn(d,date(day)+' 일정이 자정을 넘습니다. 장소 수·체류시간을 줄여주세요.');
  }
  const meals=p.items.flat().filter(x=>lookup(x.poi)?.type==='food').length;
@@ -123,6 +128,52 @@ function schedule(r,p){
 
 function time(n){const next=n>=1440?'익일 ':'';const m=((Math.round(n)%1440)+1440)%1440;return next+String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
 function date(d){return ['11.28 토','11.29 일','11.30 월'][d]||'11.27 금';}
-const api={ORIGIN,origin,km,travel,createPlan,normalizePlan,schedule,isClosed,time,date,clamp};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.TripEngine=api;
-})(typeof window!=='undefined'?window:this);
+// Pure ten-minute timeline editing: preview and commit use exactly the same result.
+const snap10=n=>Math.round(n/10)*10;
+function retime(r,original,day,editKey,part,requested){
+ const before=schedule(r,original),block=before.days[day]?.blocks.find(b=>b.edit?.key===editKey);
+ if(!block||!Number.isFinite(requested))return null;
+ const edit=block.edit,parts=edit.parts||['move','start','end'];if(!parts.includes(part))return null;
+ const p=JSON.parse(JSON.stringify(original));
+ let start=snap10(block.start),end=Math.max(start+10,snap10(block.end));
+ const target=clamp(snap10(requested),0,1440);
+ if(part==='move'){const duration=clamp(end-start,10,720);start=clamp(target,0,1440-duration);end=start+duration;}
+ else if(part==='start')start=clamp(target,Math.max(0,end-720),end-10);
+ else end=clamp(target,start+10,Math.min(1440,start+720));
+ const wanted={start,end};
+ if(edit.type==='visit'){
+  const items=p.items[day],index=items.findIndex(x=>x.uid===edit.uid);if(index<0)return null;
+  const item=items[index];
+  if(part==='move'){
+   items.splice(index,1);
+   const visits=before.days[day].blocks.filter(x=>x.kind==='visit'&&x.uid!==item.uid);
+   const position=visits.findIndex(x=>x.start>=start);
+   items.splice(position<0?items.length:position,0,item);
+  }
+  item.start=0;
+  const earliest=schedule(r,p).days[day].blocks.find(x=>x.uid===item.uid).start;
+  start=Math.max(start,Math.ceil(earliest/10)*10);
+  item.start=clamp(start,0,1430);
+  item.duration=part==='start'?clamp(end-start,10,720):clamp(wanted.end-wanted.start,10,720);
+ }else if(edit.type==='leg'){
+  p.legTiming=p.legTiming||{};delete p.legTiming[edit.legKey];
+  const earliest=schedule(r,p).days[day].blocks.find(x=>x.edit?.key===editKey)?.start??block.start;
+  start=Math.max(start,Math.ceil(earliest/10)*10);
+  p.legTiming[edit.legKey]={start:clamp(start,0,1430),duration:clamp(part==='start'?end-start:wanted.end-wanted.start,10,600)};
+ }else if(edit.type==='service'){
+  const [departure,ride,minStart,maxStart,minDuration,maxDuration]=edit.fields;
+  p[departure]=clamp(start,minStart,maxStart);p[ride]=clamp(end-start,minDuration,maxDuration);
+  const actual=schedule(r,p).days[day].blocks.find(x=>x.edit?.key===editKey);
+  if(actual.start>p[departure])p[departure]=clamp(Math.ceil(actual.start/10)*10,minStart,maxStart);
+  if(part==='start')p[ride]=clamp(end-p[departure],minDuration,maxDuration);
+ }else if(edit.type==='night'){
+  p.hotelStarts=p.hotelStarts||[null,null];p.hotelStarts[day]=0;
+  const earliest=schedule(r,p).days[day].blocks.find(x=>x.edit?.key===editKey).start;
+  p.hotelStarts[day]=clamp(Math.max(start,Math.ceil(earliest/10)*10),0,1430);
+ }else if(edit.type==='morning')p.starts[day]=clamp(end,300,1320);
+ const next=schedule(r,p),actual=next.days[day].blocks.find(x=>x.edit?.key===editKey);
+ return{plan:p,schedule:next,block:actual,requested:wanted,adjusted:actual.start!==wanted.start||actual.end!==wanted.end};
+}
 
+const api={snap10,retime,ORIGIN,origin,km,travel,createPlan,normalizePlan,schedule,isClosed,time,date,clamp};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.TripEngine=api;
+})(typeof window!=='undefined'?window:this);

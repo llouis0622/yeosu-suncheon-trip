@@ -25,9 +25,9 @@ for(const r of DATA)for(let c=0;c<r.courses.length;c++){
  check(run('plan().items[0][0].uid')===added,'picker inserts before a specified visit');
  check(run('plan().items[0].length')===n+1,'insertion preserves existing visits');
  check(el('dialogBody').innerHTML.includes('이 날짜에 포함'),'picker immediately reflects additions');el('dialog').close();
- const duration=run('findItem(state.editUid).item.duration');click({resizeStop:added,delta:'15'});
- check(run('findItem(state.editUid).item.duration')===duration+15,'duration increase from card');
- click({resizeStop:added,delta:'-15'});check(run('findItem(state.editUid).item.duration')===duration,'duration decrease from card');
+ const duration=run('findItem(state.editUid).item.duration');click({resizeStop:added,delta:'10'});
+ check(run('findItem(state.editUid).item.duration')===duration+10,'duration increase from card');
+ click({resizeStop:added,delta:'-10'});check(run('findItem(state.editUid).item.duration')===duration,'duration decrease from card');
  click({shiftStop:added,delta:'1'});check(run('findItem(state.editUid).index')===1,'card arrow reorders');
  check(run('result.days[0].blocks.filter(b=>b.kind==="visit")[1].uid')===added,'schedule uses reordered visits');
  click({relocate:added});el('moveDay').value='1';change('moveDay','1');el('movePosition').value='0';click({action:'apply-move'});
@@ -36,7 +36,7 @@ for(const r of DATA)for(let c=0;c<r.courses.length;c++){
  const moved=snap();click({removeStop:added});check(!run(`findItem(${JSON.stringify(added)})`),'delete removes correct occurrence');
  click({action:'undo'});check(snap()===moved,'undo restores exact item settings and order');
  click({action:'redo'});check(!run(`findItem(${JSON.stringify(added)})`),'redo deletes same occurrence');
- click({action:'undo'});click({resizeStop:added,delta:'15'});check(run('redo.length')===0,'new edit clears redo branch');
+ click({action:'undo'});click({resizeStop:added,delta:'10'});check(run('redo.length')===0,'new edit clears redo branch');
  for(let day=0;day<3;day++){run(`state.day=${day};renderPlanner();`);fragments.push({name:r.id+'/'+c+'/day'+day,html:el('planner').innerHTML});check(el('planner').innerHTML.includes('data-planner-view="sequence"'),'visit order view is always accessible');check(el('planner').innerHTML.includes('id="timeCanvas"'),'24h timeline remains available');}
  // Preserve generated fragments for independent HTML structure validation.
  fragments.push({name:r.id+'/'+c,html:el('planner').innerHTML});
@@ -52,9 +52,10 @@ change('stayKind','spa');check(run('visiblePoints().length')===6,'six spa/indepe
 change('stayKind','hotel');check(run('visiblePoints().length')===6,'six hotel choices');
 click({city:'all'});click({category:'all'});
 const first=uid();context.editSelect(first);change('duration','95');change('legMinutes','37');change('legMode','walk');change('preferredStart','13:15');
-check(run('selectedItem().item.duration')===95&&run('selectedItem().item.travel')===37,'manual duration/transfer');
-change('editDay','1');check(run('selectedItem().day')===1&&run('selectedItem().item.travel')===37,'move retains manual fields');
-click({action:'recommended-duration'});check(run('selectedItem().item.duration===point(selectedItem().item.poi).visitMin'),'recommendation restored');
+check(run('selectedItem().item.duration')===100&&run('selectedItem().item.travel')===40,'manual duration/transfer');
+check(run('selectedItem().item.start')===800,'manual start snaps 13:15 to 13:20');
+change('editDay','1');check(run('selectedItem().day')===1&&run('selectedItem().item.travel')===40,'move retains manual fields');
+click({action:'recommended-duration'});check(run('selectedItem().item.duration===Math.max(10,Math.floor(point(selectedItem().item.poi).visitMin/10)*10)'),'recommendation restored');
 const exported=JSON.parse(run('JSON.stringify(plan())'));
 const normalized=E.normalizePlan(DATA[0],exported);
 check(JSON.stringify(normalized.items.map(a=>a.map(x=>[x.poi,x.duration,x.travel,x.mode,x.start])))===JSON.stringify(exported.items.map(a=>a.map(x=>[x.poi,x.duration,x.travel,x.mode,x.start]))),'export/import preserves editing');
@@ -89,4 +90,3 @@ vm.runInContext(source.slice(source.indexOf('async function sharePlan(){')),cont
  check(el('importStatus').textContent.includes('일정이 길어'),'oversize snapshots guide to JSON instead of making broken links');
  console.log(checks+' UI editing/sharing assertions passed. DOM fixture only; pixels/touch not verified.');
 })().catch(error=>{console.error(error);process.exitCode=1;});
-

@@ -1,0 +1,66 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><title>여행 시간표 브라우저 검증</title><style>
+body{margin:0;background:#101113;color:#ddd;font:14px system-ui}header{display:flex;gap:8px;align-items:center;padding:12px;position:sticky;top:0;background:#191919;z-index:5;flex-wrap:wrap}button,select{padding:10px;background:#282828;color:#eee;border:1px solid #555}button:disabled{opacity:.4}#result{white-space:pre-wrap;padding:12px;max-height:260px;overflow:auto}iframe{display:block;border:1px solid #555;margin:12px}#result:empty{display:none}.ok{color:#e1d59d}
+</style><header><b>브라우저 검증</b><select id="size"><option>390 × 844</option><option>320 × 568</option><option>360 × 800</option><option>600 × 960</option><option>768 × 1024</option><option>1024 × 768</option><option>1366 × 900</option><option>1920 × 1080</option><option>740 × 360</option></select><button id="open">화면 열기</button><button id="run">9개 크기 자동 검사</button><span id="status"></span></header><pre id="result"></pre><iframe id="app" title="여행 플래너 테스트 화면"></iframe><script>
+const sizes=[[320,568],[360,800],[390,844],[600,960],[768,1024],[1024,768],[1366,900],[1920,1080],[740,360]],frame=document.querySelector('#app'),output=document.querySelector('#result'),status=document.querySelector('#status'),testKey='yeosu-suncheon-timeline-test';
+const appURL=location.pathname.endsWith('/qa.html')?'./index.html':'./dist/index.html';
+const next=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+let serial=0,checks=0,failures=0;const log=(ok,label)=>{checks++;if(!ok)failures++;output.textContent+=(ok?'✓ ':'✕ ')+label+'\n';output.scrollTop=output.scrollHeight;if(!ok)throw Error(label)};
+async function load(w,h,reset=true){if(reset)localStorage.removeItem(testKey);frame.width=w;frame.height=h;await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error('iframe load timeout')),10000);frame.onload=()=>{clearTimeout(timeout);resolve()};frame.src=appURL+'?timeline-test=1&qa-run='+(++serial)+'#yeosu-suncheon/0'});await next();return frame.contentDocument;}
+const click=(doc,sel)=>{const el=doc.querySelector(sel);if(!el)throw Error('missing '+sel);el.click();return el};
+const saved=()=>localStorage.getItem(testKey),current=()=>JSON.parse(saved()||'{}')['yeosu-suncheon:0'];
+function range(el){const text=el.querySelector('.time-block').getAttribute('aria-label'),m=[...text.matchAll(/(\d\d):(\d\d)/g)].map(x=>+x[1]*60 + +x[2]);return m.slice(-2)}
+function byKey(doc,key){return [...doc.querySelectorAll('[data-time-key]')].find(x=>x.dataset.timeKey===key)}
+function pointer(doc,key,part,delta,type='touch',finish='pointerup'){
+ const event=byKey(doc,key),control=event.querySelector('[data-time-part="'+part+'"]'),rect=control.getBoundingClientRect(),canvas=doc.querySelector('#timeCanvas').getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2,win=doc.defaultView;
+ const send=(target,name,id,px,primary=true)=>target.dispatchEvent(new win.PointerEvent(name,{pointerId:id,pointerType:type,button:0,buttons:name==='pointerup'?0:1,clientX:px,clientY:y,bubbles:true,cancelable:true,isPrimary:primary}));
+ send(control,'pointerdown',101,x);send(win,'pointermove',101,x+delta/1440*canvas.width);
+ if(finish==='second-touch'){send(control,'pointerdown',102,x+20,false);send(win,'pointerup',101,x+delta/1440*canvas.width);}
+ else if(finish==='escape'){control.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));send(win,'pointerup',101,x+delta/1440*canvas.width);}
+ else send(win,finish,101,x+delta/1440*canvas.width);
+}
+async function suite(w,h){
+ let d=await load(w,h);if(w<=900)click(d,'#pane-schedule');await next();
+ const main=d.querySelector('#main'),planner=d.querySelector('#planner');
+ log(d.documentElement.scrollWidth<=w+1,w+'×'+h+' page has no horizontal overflow');
+ log(planner.getBoundingClientRect().right<=w+1&&planner.getBoundingClientRect().left>=0,'planner fits viewport');
+ log(main.scrollWidth<=main.clientWidth+1,'main does not spill horizontally');
+ log(d.querySelector('#timeCanvas').getBoundingClientRect().width/144>=19,'ten-minute cells have usable zoom');
+ const first=d.querySelector('.time-event.visit'),key=first.dataset.timeKey,initial=range(first),count=d.querySelectorAll('.time-event.visit').length;
+ const visible=d.querySelector('#timeScroll').getBoundingClientRect(),firstRect=first.getBoundingClientRect();
+ log(firstRect.left<visible.right&&firstRect.right>visible.left,'first visit is visible when opening schedule');
+ const sc=d.querySelector('#timeScroll'),beforeScroll=sc.scrollLeft,autoDirection=sc.scrollWidth-sc.clientWidth-sc.scrollLeft<100?-1:1,control=first.querySelector('[data-time-part="move"]'),rect=control.getBoundingClientRect(),beforeAuto=saved();
+ control.dispatchEvent(new d.defaultView.PointerEvent('pointerdown',{pointerId:201,pointerType:'touch',isPrimary:true,button:0,buttons:1,clientX:Math.max(visible.left+40,rect.left+20),clientY:rect.top+20,bubbles:true}));
+ d.defaultView.dispatchEvent(new d.defaultView.PointerEvent('pointermove',{pointerId:201,pointerType:'touch',isPrimary:true,button:0,buttons:1,clientX:autoDirection===1?visible.right-5:visible.left+5,clientY:rect.top+20,bubbles:true,cancelable:true}));
+ await next();await next();log(autoDirection===1?sc.scrollLeft>beforeScroll:sc.scrollLeft<beforeScroll,'drag near edge automatically scrolls timeline');
+ d.defaultView.dispatchEvent(new d.defaultView.PointerEvent('pointercancel',{pointerId:201,pointerType:'touch',bubbles:true}));
+ log(saved()===beforeAuto,'cancel after auto-scroll does not save');sc.scrollLeft=beforeScroll;
+ pointer(d,key,'move',26,'mouse');let moved=range(byKey(d,key));log(moved[0]===initial[0]+30&&moved[1]===initial[1]+30,'mouse move snaps to ten minutes');
+ click(d,'[data-action="undo"]');log(range(byKey(d,key)).join()===initial.join(),'one undo restores entire drag');
+ pointer(d,key,'end',23);let end=range(byKey(d,key));log(end[0]===initial[0]&&end[1]===initial[1]+20,'touch right edge extends only end');
+ click(d,'[data-action="undo"]');pointer(d,key,'start',21);let start=range(byKey(d,key));log(start[0]===initial[0]+20&&start[1]===initial[1],'touch left edge preserves end');
+ click(d,'[data-action="undo"]');
+ for(const ending of ['pointercancel','second-touch','escape']){const before=saved();pointer(d,key,'move',40,'touch',ending);log(saved()===before&&!d.body.classList.contains('timeline-editing'),ending+' cancels without saving');}
+ byKey(d,key).querySelector('[data-time-part="move"]').dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true,cancelable:true}));
+ log(range(byKey(d,key))[0]===initial[0]+10,'keyboard moves ten minutes');click(d,'[data-action="undo"]');
+ pointer(d,key,'move',20,'touch');log(range(byKey(d,key))[0]===initial[0]+20,'touch body moves block');
+ d=await load(w,h,false);if(w<=900)click(d,'#pane-schedule');await next();
+ log(range(byKey(d,key))[0]===initial[0]+20,'reload preserves moved position');
+ const leg=d.querySelector('.time-event.travel.editable[data-time-key^="leg:"]'),legkey=leg.dataset.timeKey;
+ pointer(d,legkey,'end',20,'touch');const legRange=range(byKey(d,legkey));d=await load(w,h,false);if(w<=900)click(d,'#pane-schedule');await next();
+ log(range(byKey(d,legkey)).join()===legRange.join(),'reload preserves transport edit');
+ await new Promise(resolve=>setTimeout(resolve,550));click(d,'[data-time-key="'+legkey+'"] .time-block');click(d,'[data-action="timeline-edit"]');click(d,'[data-action="timeline-auto"]');
+ log(!current().legTiming[legkey.replace(/^leg:/,'')],'local travel can return to automatic calculation');
+ click(d,'[data-action="add-place"]');const picker=d.querySelector('#pickerStart');picker.value='16:23';picker.dispatchEvent(new d.defaultView.Event('change',{bubbles:true}));
+ log(d.querySelector('#pickerStart').value==='16:20','time entry snaps to ten minutes');
+ click(d,'[data-pick="ys_hamel"]');click(d,'#closeDialog');log(d.querySelectorAll('.time-event.visit').length===count+1,'picker inserts chosen place');
+ const visit=d.querySelector('.time-event.visit');click(d,'[data-time-key="'+visit.dataset.timeKey+'"] .time-block');
+ log(d.querySelector('[data-action="timeline-edit"]').getBoundingClientRect().right<=w+1,'selected block actions stay in viewport');
+ click(d,'[data-action="timeline-edit"]');const dialog=d.querySelector('#dialog').getBoundingClientRect();
+ log(dialog.width<=w&&dialog.height<=h,'edit dialog fits viewport');click(d,'#closeDialog');
+ log([...d.querySelectorAll('.time-event.visit')].every(el=>range(el).every(n=>n%10===0)),'all visits end on ten-minute cells');
+ if(w<=900){click(d,'#pane-map');log(d.querySelector('#viewport').getBoundingClientRect().width>0,'map view remains accessible');click(d,'#pane-places');log(d.querySelector('#candidateList').getBoundingClientRect().height>120,'candidate list remains usable');}
+}
+document.querySelector('#open').onclick=async()=>{output.textContent='';const[w,h]=document.querySelector('#size').value.split(' × ').map(Number);await load(w,h);status.textContent=w+' × '+h;};
+document.querySelector('#run').onclick=async()=>{const button=document.querySelector('#run');button.disabled=true;checks=failures=0;output.textContent='DOM PointerEvent mouse/touch simulation + real browser layout. Physical device gestures are not covered.\n';try{for(const[w,h]of sizes){status.textContent=w+' × '+h+' 검사 중';await suite(w,h);}}catch(e){output.textContent+='ERROR '+e.stack+'\n';failures++;}finally{button.disabled=false;status.textContent=checks+' checks · '+failures+' failures';output.dataset.checks=checks;output.dataset.failures=failures;localStorage.removeItem(testKey);}};
+document.querySelector('#open').click();
+</script></html>
