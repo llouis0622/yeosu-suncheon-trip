@@ -1,7 +1,7 @@
 <!doctype html><html lang="ko"><meta charset="utf-8"><title>여행 시간표 브라우저 검증</title><style>
 body{margin:0;background:#101113;color:#ddd;font:14px system-ui}header{display:flex;gap:8px;align-items:center;padding:12px;position:sticky;top:0;background:#191919;z-index:5;flex-wrap:wrap}button,select{padding:10px;background:#282828;color:#eee;border:1px solid #555}button:disabled{opacity:.4}#result{white-space:pre-wrap;padding:12px;max-height:260px;overflow:auto}iframe{display:block;border:1px solid #555;margin:12px}#result:empty{display:none}.ok{color:#e1d59d}
-</style><header><b>브라우저 검증</b><select id="size"><option>390 × 844</option><option>320 × 568</option><option>360 × 800</option><option>600 × 960</option><option>768 × 1024</option><option>1024 × 768</option><option>1366 × 900</option><option>1920 × 1080</option><option>740 × 360</option></select><button id="open">화면 열기</button><button id="run">9개 크기 자동 검사</button><span id="status"></span></header><pre id="result"></pre><iframe id="app" title="여행 플래너 테스트 화면"></iframe><script>
-const sizes=[[320,568],[360,800],[390,844],[600,960],[768,1024],[1024,768],[1366,900],[1920,1080],[740,360]],frame=document.querySelector('#app'),output=document.querySelector('#result'),status=document.querySelector('#status'),testKey='yeosu-suncheon-timeline-test';
+</style><header><b>브라우저 검증</b><select id="size"><option>390 × 844</option><option>320 × 568</option><option>360 × 800</option><option>600 × 960</option><option>768 × 1024</option><option>1024 × 768</option><option>1179 × 820</option><option>1180 × 820</option><option>1366 × 900</option><option>1920 × 1080</option><option>740 × 360</option></select><button id="open">화면 열기</button><button id="run">11개 크기 자동 검사</button><span id="status"></span></header><pre id="result"></pre><iframe id="app" title="여행 플래너 테스트 화면"></iframe><script>
+const sizes=[[320,568],[360,800],[390,844],[600,960],[768,1024],[1024,768],[1179,820],[1180,820],[1366,900],[1920,1080],[740,360]],frame=document.querySelector('#app'),output=document.querySelector('#result'),status=document.querySelector('#status'),testKey='yeosu-suncheon-timeline-test';
 const appURL=location.pathname.endsWith('/qa.html')?'./index.html':'./dist/index.html';
 const next=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
 let serial=0,checks=0,failures=0;const log=(ok,label)=>{checks++;if(!ok)failures++;output.textContent+=(ok?'✓ ':'✕ ')+label+'\n';output.scrollTop=output.scrollHeight;if(!ok)throw Error(label)};
@@ -10,32 +10,49 @@ const click=(doc,sel)=>{const el=doc.querySelector(sel);if(!el)throw Error('miss
 const saved=()=>localStorage.getItem(testKey),current=()=>JSON.parse(saved()||'{}')['yeosu-suncheon:0'];
 function range(el){const text=el.querySelector('.time-block').getAttribute('aria-label'),m=[...text.matchAll(/(\d\d):(\d\d)/g)].map(x=>+x[1]*60 + +x[2]);return m.slice(-2)}
 function byKey(doc,key){return [...doc.querySelectorAll('[data-time-key]')].find(x=>x.dataset.timeKey===key)}
+function axis(doc){return doc.querySelector('#timeScroll').dataset.axis==='top'?{pos:'top',end:'bottom',size:'height',scroll:'scrollTop',extent:'scrollHeight',viewport:'clientHeight',client:'clientY'}:{pos:'left',end:'right',size:'width',scroll:'scrollLeft',extent:'scrollWidth',viewport:'clientWidth',client:'clientX'}}
+function coordinates(rect,a,value){return {clientX:a.client==='clientX'?value:rect.left+rect.width/2,clientY:a.client==='clientY'?value:rect.top+rect.height/2}}
 function pointer(doc,key,part,delta,type='touch',finish='pointerup'){
- const event=byKey(doc,key),control=event.querySelector('[data-time-part="'+part+'"]'),rect=control.getBoundingClientRect(),canvas=doc.querySelector('#timeCanvas').getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2,win=doc.defaultView;
- const send=(target,name,id,px,primary=true)=>target.dispatchEvent(new win.PointerEvent(name,{pointerId:id,pointerType:type,button:0,buttons:name==='pointerup'?0:1,clientX:px,clientY:y,bubbles:true,cancelable:true,isPrimary:primary}));
- send(control,'pointerdown',101,x);send(win,'pointermove',101,x+delta/1440*canvas.width);
- if(finish==='second-touch'){send(control,'pointerdown',102,x+20,false);send(win,'pointerup',101,x+delta/1440*canvas.width);}
- else if(finish==='escape'){control.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));send(win,'pointerup',101,x+delta/1440*canvas.width);}
- else send(win,finish,101,x+delta/1440*canvas.width);
+ const event=byKey(doc,key),control=event.querySelector('[data-time-part="'+part+'"]'),rect=control.getBoundingClientRect(),canvas=doc.querySelector('#timeCanvas').getBoundingClientRect(),a=axis(doc),x=rect[a.pos]+rect[a.size]/2,win=doc.defaultView;
+ const send=(target,name,id,px,primary=true)=>target.dispatchEvent(new win.PointerEvent(name,{pointerId:id,pointerType:type,button:0,buttons:name==='pointerup'?0:1,...coordinates(rect,a,px),bubbles:true,cancelable:true,isPrimary:primary}));
+ send(control,'pointerdown',101,x);send(win,'pointermove',101,x+delta/1440*canvas[a.size]);
+ if(finish==='second-touch'){send(control,'pointerdown',102,x+20,false);send(win,'pointerup',101,x+delta/1440*canvas[a.size]);}
+ else if(finish==='escape'){control.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));send(win,'pointerup',101,x+delta/1440*canvas[a.size]);}
+ else send(win,finish,101,x+delta/1440*canvas[a.size]);
 }
 function beginPointer(doc,key,part,type='touch'){
- const control=byKey(doc,key).querySelector('[data-time-part="'+part+'"]'),rect=control.getBoundingClientRect(),canvas=doc.querySelector('#timeCanvas').getBoundingClientRect(),win=doc.defaultView,x=rect.left+rect.width/2,y=rect.top+rect.height/2;
+ const control=byKey(doc,key).querySelector('[data-time-part="'+part+'"]'),rect=control.getBoundingClientRect(),canvas=doc.querySelector('#timeCanvas').getBoundingClientRect(),win=doc.defaultView,a=axis(doc),x=rect[a.pos]+rect[a.size]/2;
  let px=x;
- const send=(target,name)=>target.dispatchEvent(new win.PointerEvent(name,{pointerId:301,pointerType:type,isPrimary:true,button:0,buttons:name==='pointerup'?0:1,clientX:px,clientY:y,bubbles:true,cancelable:true}));
+ const send=(target,name)=>target.dispatchEvent(new win.PointerEvent(name,{pointerId:301,pointerType:type,isPrimary:true,button:0,buttons:name==='pointerup'?0:1,...coordinates(rect,a,px),bubbles:true,cancelable:true}));
  send(control,'pointerdown');
- return {control,move(delta){px=x+delta/1440*canvas.width;send(win,'pointermove')},end(cancel=false){send(win,cancel?'pointercancel':'pointerup')}};
+ return {control,move(delta){px=x+delta/1440*canvas[a.size];send(win,'pointermove')},end(cancel=false){send(win,cancel?'pointercancel':'pointerup')}};
 }
 const visitSnapshot=doc=>JSON.stringify([...doc.querySelectorAll('.time-event.visit')].map(el=>[el.dataset.timeKey,...range(el)]).sort((a,b)=>a[0].localeCompare(b[0])));
 async function suite(w,h){
- let d=await load(w,h);if(w<=900)click(d,'#pane-schedule');await next();
+ let d=await load(w,h);
+ const header=d.querySelector('#appHeader').getBoundingClientRect(),map=d.querySelector('.map-frame').getBoundingClientRect(),candidates=d.querySelector('#candidatePanel').getBoundingClientRect(),initialPlanner=d.querySelector('#planner').getBoundingClientRect();
+ log(header.height<=50,'single compact header stays within 50px');
+ log(d.querySelector('#viewSwitch').getBoundingClientRect().top<header.bottom,'view tabs sit beside the title');
+ log(map.height>=h-header.height-20,'map occupies the full available height');
+ if(w>1179){
+  log(Math.abs(map.width/candidates.width-2)<.05&&Math.abs(initialPlanner.width/candidates.width-1)<.03,'desktop columns follow 50 / 25 / 25 proportions');
+  log(Math.abs(map.top-candidates.top)<1&&Math.abs(map.top-initialPlanner.top)<1,'map, recommendations and schedule share one top edge');
+ }else{
+  log(candidates.width===0&&initialPlanner.width===0,'compact screen starts with map alone');
+  click(d,'#pane-schedule');
+ }
+ await next();
  const main=d.querySelector('#main'),planner=d.querySelector('#planner');
  log(d.documentElement.scrollWidth<=w+1,w+'×'+h+' page has no horizontal overflow');
  log(planner.getBoundingClientRect().right<=w+1&&planner.getBoundingClientRect().left>=0,'planner fits viewport');
  log(main.scrollWidth<=main.clientWidth+1,'main does not spill horizontally');
- log(d.querySelector('#timeCanvas').getBoundingClientRect().width/144>=19,'ten-minute cells have usable zoom');
+ const a=axis(d);log(a.pos==='top','side and compact timelines use vertical time');
+ log(d.querySelector('#timeCanvas').getBoundingClientRect()[a.size]/144>=13,'ten-minute cells have usable zoom');
+ log(d.querySelector('#timeScroll').scrollWidth<=d.querySelector('#timeScroll').clientWidth+1,'vertical timeline needs no horizontal scrolling');
+ log(d.querySelector('#timeScroll').clientHeight>=100,'timeline retains usable height on short screens');
  const first=d.querySelector('.time-event.visit'),key=first.dataset.timeKey,initial=range(first),count=d.querySelectorAll('.time-event.visit').length;
  const visible=d.querySelector('#timeScroll').getBoundingClientRect(),firstRect=first.getBoundingClientRect();
- log(firstRect.left<visible.right&&firstRect.right>visible.left,'first visit is visible when opening schedule');
+ log(firstRect[a.pos]<visible[a.end]&&firstRect[a.end]>visible[a.pos],'first visit is visible when opening schedule');
  // Observe live reflow before pointerup, including repeated moves on one captured control.
  const originalVisits=visitSnapshot(d),beforeFlow=saved(),neighbor=d.querySelectorAll('.time-event.visit')[1],neighborKey=neighbor.dataset.timeKey,neighborStart=range(neighbor)[0];
  const resize=beginPointer(d,key,'end');resize.move(30);
@@ -48,8 +65,8 @@ async function suite(w,h){
  log(visitSnapshot(d)===liveVisits,'drop keeps exactly the previewed schedule');
  log(d.querySelector('#timelineGhost').hidden&&!d.querySelector('.timeline-dragging'),'drop removes ghost and landing placeholder');
  await new Promise(resolve=>setTimeout(resolve,220));
- const settled=[...d.querySelectorAll('.time-event.visit')].map(el=>el.getBoundingClientRect()).sort((a,b)=>a.left-b.left);
- log(settled.every((rect,i)=>!i||rect.left>=settled[i-1].right-.5),'settled visit cards have no overlap');
+ const settled=[...d.querySelectorAll('.time-event.visit')].map(el=>el.getBoundingClientRect()).sort((x,y)=>x[a.pos]-y[a.pos]);
+ log(settled.every((rect,i)=>!i||rect[a.pos]>=settled[i-1][a.end]-.5),'settled visit cards have no overlap');
  click(d,'[data-action="undo"]');log(visitSnapshot(d)===originalVisits,'one undo restores all shifted neighbors');
  const beforeCancel=saved(),drag=beginPointer(d,key,'move','mouse');drag.move(230);
  log(range(byKey(d,neighborKey))[0]<neighborStart,'moving a visit later pulls its neighbor into the vacated slot');
@@ -61,25 +78,25 @@ async function suite(w,h){
  const beforeNoOp=saved(),noOp=beginPointer(d,key,'move');noOp.move(40);noOp.move(0);
  log(visitSnapshot(d)===originalVisits,'dragging back to the original cell restores the full schedule');
  noOp.end();log(saved()===beforeNoOp,'dropping in the original cell creates no extra saved edit');
- const sc=d.querySelector('#timeScroll'),beforeScroll=sc.scrollLeft,autoDirection=sc.scrollWidth-sc.clientWidth-sc.scrollLeft<100?-1:1,control=byKey(d,key).querySelector('[data-time-part="move"]'),rect=control.getBoundingClientRect(),beforeAuto=saved();
- control.dispatchEvent(new d.defaultView.PointerEvent('pointerdown',{pointerId:201,pointerType:'touch',isPrimary:true,button:0,buttons:1,clientX:Math.max(visible.left+40,rect.left+20),clientY:rect.top+20,bubbles:true}));
- d.defaultView.dispatchEvent(new d.defaultView.PointerEvent('pointermove',{pointerId:201,pointerType:'touch',isPrimary:true,button:0,buttons:1,clientX:autoDirection===1?visible.right-5:visible.left+5,clientY:rect.top+20,bubbles:true,cancelable:true}));
- await next();await next();log(autoDirection===1?sc.scrollLeft>beforeScroll:sc.scrollLeft<beforeScroll,'drag near edge automatically scrolls timeline');
+ const sc=d.querySelector('#timeScroll'),beforeScroll=sc[a.scroll],autoDirection=sc[a.extent]-sc[a.viewport]-sc[a.scroll]<100?-1:1,control=byKey(d,key).querySelector('[data-time-part="move"]'),rect=control.getBoundingClientRect(),beforeAuto=saved();
+ control.dispatchEvent(new d.defaultView.PointerEvent('pointerdown',{pointerId:201,pointerType:'touch',isPrimary:true,button:0,buttons:1,...coordinates(rect,a,Math.max(visible[a.pos]+40,rect[a.pos]+20)),bubbles:true}));
+ d.defaultView.dispatchEvent(new d.defaultView.PointerEvent('pointermove',{pointerId:201,pointerType:'touch',isPrimary:true,button:0,buttons:1,...coordinates(rect,a,autoDirection===1?visible[a.end]-5:visible[a.pos]+5),bubbles:true,cancelable:true}));
+ await next();await next();log(autoDirection===1?sc[a.scroll]>beforeScroll:sc[a.scroll]<beforeScroll,'drag near edge automatically scrolls timeline');
  d.defaultView.dispatchEvent(new d.defaultView.PointerEvent('pointercancel',{pointerId:201,pointerType:'touch',bubbles:true}));
- log(saved()===beforeAuto,'cancel after auto-scroll does not save');sc.scrollLeft=beforeScroll;
+ log(saved()===beforeAuto,'cancel after auto-scroll does not save');sc[a.scroll]=beforeScroll;
  pointer(d,key,'move',26,'mouse');let moved=range(byKey(d,key));log(moved[0]===initial[0]+30&&moved[1]===initial[1]+30,'mouse move snaps to ten minutes');
  click(d,'[data-action="undo"]');log(range(byKey(d,key)).join()===initial.join(),'one undo restores entire drag');
- pointer(d,key,'end',23);let end=range(byKey(d,key));log(end[0]===initial[0]&&end[1]===initial[1]+20,'touch right edge extends only end');
- click(d,'[data-action="undo"]');pointer(d,key,'start',21);let start=range(byKey(d,key));log(start[0]===initial[0]+20&&start[1]===initial[1],'touch left edge preserves end');
+ pointer(d,key,'end',23);let end=range(byKey(d,key));log(end[0]===initial[0]&&end[1]===initial[1]+20,'touch trailing edge extends only end');
+ click(d,'[data-action="undo"]');pointer(d,key,'start',21);let start=range(byKey(d,key));log(start[0]===initial[0]+20&&start[1]===initial[1],'touch leading edge preserves end');
  click(d,'[data-action="undo"]');
  for(const ending of ['pointercancel','second-touch','escape']){const before=saved();pointer(d,key,'move',40,'touch',ending);log(saved()===before&&!d.body.classList.contains('timeline-editing'),ending+' cancels without saving');}
- byKey(d,key).querySelector('[data-time-part="move"]').dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true,cancelable:true}));
+ byKey(d,key).querySelector('[data-time-part="move"]').dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:a.pos==='top'?'ArrowDown':'ArrowRight',bubbles:true,cancelable:true}));
  log(range(byKey(d,key))[0]===initial[0]+10,'keyboard moves ten minutes');click(d,'[data-action="undo"]');
  pointer(d,key,'move',20,'touch');log(range(byKey(d,key))[0]===initial[0]+20,'touch body moves block');
- d=await load(w,h,false);if(w<=900)click(d,'#pane-schedule');await next();
+ d=await load(w,h,false);if(w<=1179)click(d,'#pane-schedule');await next();
  log(range(byKey(d,key))[0]===initial[0]+20,'reload preserves moved position');
  const leg=d.querySelector('.time-event.travel.editable[data-time-key^="leg:"]'),legkey=leg.dataset.timeKey;
- pointer(d,legkey,'end',20,'touch');const legRange=range(byKey(d,legkey));d=await load(w,h,false);if(w<=900)click(d,'#pane-schedule');await next();
+ pointer(d,legkey,'end',20,'touch');const legRange=range(byKey(d,legkey));d=await load(w,h,false);if(w<=1179)click(d,'#pane-schedule');await next();
  log(range(byKey(d,legkey)).join()===legRange.join(),'reload preserves transport edit');
  await new Promise(resolve=>setTimeout(resolve,550));click(d,'[data-time-key="'+legkey+'"] .time-block');click(d,'[data-action="timeline-edit"]');click(d,'[data-action="timeline-auto"]');
  log(!current().legTiming[legkey.replace(/^leg:/,'')],'local travel can return to automatic calculation');
@@ -91,7 +108,15 @@ async function suite(w,h){
  click(d,'[data-action="timeline-edit"]');const dialog=d.querySelector('#dialog').getBoundingClientRect();
  log(dialog.width<=w&&dialog.height<=h,'edit dialog fits viewport');click(d,'#closeDialog');
  log([...d.querySelectorAll('.time-event.visit')].every(el=>range(el).every(n=>n%10===0)),'all visits end on ten-minute cells');
- if(w<=900){click(d,'#pane-map');log(d.querySelector('#viewport').getBoundingClientRect().width>0,'map view remains accessible');click(d,'#pane-places');log(d.querySelector('#candidateList').getBoundingClientRect().height>120,'candidate list remains usable');}
+ if(w>1179){
+  const beforeView=visitSnapshot(d);click(d,'#pane-schedule');await next();
+  log(axis(d).pos==='left','focused desktop schedule switches to horizontal time');
+  const focused=d.querySelector('.time-event.visit'),focusedKey=focused.dataset.timeKey,focusedRange=range(focused);
+  pointer(d,focusedKey,'move',20,'mouse');log(range(byKey(d,focusedKey))[0]===focusedRange[0]+20,'horizontal drag still snaps and moves');
+  click(d,'[data-action="undo"]');click(d,'#pane-split');await next();
+  log(axis(d).pos==='top'&&visitSnapshot(d)===beforeView,'returning to all columns preserves edits and vertical layout');
+ }
+ if(w<=1179){click(d,'#pane-map');log(d.querySelector('#viewport').getBoundingClientRect().width>0,'map view remains accessible');click(d,'#pane-places');log(d.querySelector('#candidateList').getBoundingClientRect().height>120,'candidate list remains usable');}
 }
 document.querySelector('#open').onclick=async()=>{output.textContent='';const[w,h]=document.querySelector('#size').value.split(' × ').map(Number);await load(w,h);status.textContent=w+' × '+h;};
 document.querySelector('#run').onclick=async()=>{const button=document.querySelector('#run');button.disabled=true;checks=failures=0;output.textContent='DOM PointerEvent mouse/touch simulation + real browser layout. Physical device gestures are not covered.\n';try{for(const[w,h]of sizes){status.textContent=w+' × '+h+' 검사 중';await suite(w,h);}}catch(e){output.textContent+='ERROR '+e.stack+'\n';failures++;}finally{button.disabled=false;status.textContent=checks+' checks · '+failures+' failures';output.dataset.checks=checks;output.dataset.failures=failures;localStorage.removeItem(testKey);}};

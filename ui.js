@@ -24,31 +24,34 @@ const durationLabel=n=>n<60?n+'분':Math.floor(n/60)+'시간'+(n%60?' '+n%60+'�
 function restoreSaved(){if(!saved||typeof saved!=='object'||Array.isArray(saved)){saved={};return;}for(const [k,v]of Object.entries(saved)){try{const d=DATA.find(d=>d.id===v?.region);if(!d||!Number.isInteger(v.baseCourse)||!d.courses[v.baseCourse]||k!==d.id+':'+v.baseCourse)delete saved[k];else saved[k]=E.normalizePlan(d,v);}catch{delete saved[k];}}}
 function refresh(fitMap=false){if(!state.playing&&$('playCaption'))$('playCaption').hidden=true;if(region()&&state.day===-1&&!plan().friday)state.day=0;result=region()?E.schedule(region(),plan()):null;renderHeader();renderRegions();renderCourseBar();renderCandidatePanel();renderPlanner();renderPins();renderRoutes();if(fitMap)fitSelected();updatePlaybackControls();updateStopEditor();}
 function courseIndex(d,ci){return E.clamp(Math.trunc(Number(ci))||0,0,d.courses.length-1);}
-function selectRegion(id,ci=0,preview=true){const d=DATA.find(x=>x.id===id);if(!d)return;closeStopEditor();stopPlayback();state.pane='map';state.plannerExpanded=false;state.region=id;state.course=courseIndex(d,ci);state.selected=null;state.editUid=null;state.type='all';state.query='';state.day=0;closeRegions();$('main').classList.remove('national');$('main').scrollTop=0;refresh(!preview);location.hash=id+'/'+state.course;if(preview)startArrival();}
+function selectRegion(id,ci=0,preview=true){const d=DATA.find(x=>x.id===id);if(!d)return;closeStopEditor();stopPlayback();state.pane=compactWorkspace()?'map':'split';state.plannerExpanded=false;state.region=id;state.course=courseIndex(d,ci);state.selected=null;state.editUid=null;state.type='all';state.query='';state.day=0;closeRegions();$('main').classList.remove('national');$('main').scrollTop=0;refresh(!preview);location.hash=id+'/'+state.course;if(preview)startArrival();}
 function changeCourse(ci){closeStopEditor();stopPlayback();state.course=courseIndex(region(),ci);state.editUid=null;state.selected=null;state.playing=false;state.fromPoint=null;refresh(true);location.hash=state.region+'/'+state.course;}
-function goNational(){stopPlayback();state.region=DATA[0].id;state.selected=null;state.editUid=null;refresh();animateView(fit([E.origin(region()).coord,...region().points.filter(p=>p.type==='transit').map(p=>p.coord)],.15,8),350);}
+function goNational(){setPane('map');stopPlayback();state.region=DATA[0].id;state.selected=null;state.editUid=null;refresh();animateView(fit([E.origin(region()).coord,...region().points.filter(p=>p.type==='transit').map(p=>p.coord)],.15,8),350);}
 function filteredRegions(){return DATA.filter(d=>state.filter==='all'||state.filter==='car'&&d.carAllowed||state.filter==='no-car'&&!d.carAllowed||state.filter==='aquarium'&&d.points.some(p=>p.aquarium)||state.filter==='themepark'&&d.courses.some(c=>c.themePark));}
 function renderRegions(){const list=filteredRegions();$('regionCount').textContent=list.length;$('regions').innerHTML=list.map(d=>`<button class="region-row ${d.id===state.region?'active':''}" data-region="${d.id}" aria-pressed="${d.id===state.region}"><span class="region-no">${String(DATA.indexOf(d)+1).padStart(2,'0')}</span><span><b>${esc(d.name)}</b><small>${d.carAllowed?'자차 가능':'기차·버스 + 현지 택시'} · ${d.courses.length}코스</small></span>${d.points.some(p=>p.aquarium)?'<span class="aquarium-symbol" title="아쿠아리움 후보 있음">◉</span>':''}</button>`).join('');}
-function renderHeader(){const d=region();$('mapTitle').textContent='여수 · 순천';$('mapSubtitle').textContent=d?d.points.filter(p=>p.type!=='transit').length+'곳 · 2박 3일':'';$('homeBtn').hidden=false;$('homeBtn').textContent='부산 포함';$('fitBtn').hidden=false;$('fitBtn').textContent='두 도시';$('mapHelp').textContent='밝게: 내 일정 · 흐리게: 후보 · 화살표는 이동 순서';$('main').dataset.pane=state.pane;$('viewSwitch').hidden=false;for(const p of ['map','places','schedule'])$('pane-'+p).setAttribute('aria-pressed',String(state.pane===p));}
+function renderHeader(){const d=region();$('mapTitle').textContent='여수 · 순천';$('mapSubtitle').textContent=d?d.points.filter(p=>p.type!=='transit').length+'곳 · 2박 3일':'';$('homeBtn').hidden=false;$('homeBtn').textContent='부산 포함';$('fitBtn').hidden=false;$('fitBtn').textContent='두 도시';$('mapHelp').textContent='밝게: 내 일정 · 흐리게: 후보 · 화살표는 이동 순서';$('main').dataset.pane=state.pane;$('viewSwitch').hidden=false;for(const p of ['split','map','places','schedule'])$('pane-'+p).setAttribute('aria-pressed',String(state.pane===p));}
 function renderCourseBar(){const d=region();$('courseBar').hidden=!d;if(!d)return;$('courseBar').innerHTML=`<span class="course-label">추천 코스</span><div class="course-tabs">${d.courses.map((c,i)=>`<button data-course="${i}" class="${i===state.course?'active':''}" aria-pressed="${i===state.course}"><b>${letter(i)}</b><span>${esc(c.name)}</span></button>`).join('')}</div><button class="course-info-button quiet" data-action="course-info" aria-label="선택한 코스 설명과 편집">안내·편집</button>`;}
 function courseInfo(){const c=region().courses[state.course];modal(letter(state.course)+' · '+c.name,`<p class="course-summary">${esc(c.desc)}</p>${c.notes?`<h3>교통·예약 팁</h3><p>${esc(c.notes)}</p>`:''}<div class="course-dialog-actions"><button data-action="reset">추천 일정 복원</button><button data-action="blank">빈 일정으로 시작</button></div>`);}
-const compactWorkspace=()=>matchMedia('(max-width: 900px)').matches;
+const compactWorkspace=()=>matchMedia('(max-width: 1179px)').matches;
 function setPane(pane){
- cancelSort();state.pane=['map','places','schedule'].includes(pane)?pane:'map';
- if(compactWorkspace())state.plannerExpanded=false;
+ cancelSort();state.pane=['split','map','places','schedule'].includes(pane)?pane:'map';
+ if(compactWorkspace()&&state.pane==='split')state.pane='map';
+ state.plannerExpanded=!compactWorkspace()&&state.pane==='schedule';
  $('main').dataset.pane=state.pane;
- for(const p of ['map','places','schedule'])$('pane-'+p).setAttribute('aria-pressed',String(state.pane===p));
- if(state.pane!=='map')pauseMap();
+ for(const p of ['split','map','places','schedule'])$('pane-'+p).setAttribute('aria-pressed',String(state.pane===p));
+ if(!['map','split'].includes(state.pane))pauseMap();
  renderPlanner();
 }
 function togglePlanner(){
  if(compactWorkspace()){setPane(state.pane==='schedule'?'map':'schedule');return;}
- state.plannerExpanded=!state.plannerExpanded;renderPlanner();
+ setPane(state.plannerExpanded?'split':'schedule');
 }
 function syncWorkspace(){
  cancelSort();
- // A desktop overlay must not obscure the map after rotating to a compact layout.
- if(compactWorkspace()&&state.plannerExpanded){state.plannerExpanded=false;state.pane='schedule';}
+ // Keep the chosen pane while adapting its time axis to the available width.
+ if(compactWorkspace()&&state.plannerExpanded)state.pane='schedule';
+ if(compactWorkspace()&&state.pane==='split')state.pane='map';
+ state.plannerExpanded=!compactWorkspace()&&state.pane==='schedule';
  renderHeader();renderPlanner();
  if(!compactWorkspace())closeRegions();
 }
@@ -69,7 +72,7 @@ function card(p){
 }
 function renderCandidatePanel(){
  const d=region();if(!d)return;const scroll=$('candidateList')?.scrollTop||0;
- $('candidatePanel').innerHTML=`<div class="candidate-head"><div class="candidate-title"><h2>장소 후보 <small id="candidateCount"></small></h2><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" aria-label="장소 검색" placeholder="장소·음식·동네" value="${esc(state.query)}"></label></div><div class="city-tabs" role="group" aria-label="도시 필터">${[['all','두 도시 전체'],['여수','여수'],['순천','순천']].map(([k,v])=>`<button data-city="${k}" aria-pressed="${state.city===k}" class="${state.city===k?'active':''}">${v}</button>`).join('')}<button data-action="fit-filter" class="filter-map">지도에 맞춤 ↗</button></div><div class="category-tabs" role="group" aria-label="장소 분류">${[['all','전체'],['sight','관광·체험'],['food','맛집'],['cafe','카페'],['hotel','숙소'],['aquarium','아쿠아리움']].map(([k,v])=>`<button data-category="${k}" class="${state.type===k?'active':''}" aria-pressed="${state.type===k}">${v}</button>`).join('')}</div><div class="candidate-info"><label class="check"><input id="mapFilter" type="checkbox" ${state.mapFilter?'checked':''}> 지도도 필터 적용</label><label>추가할 날 <select id="addDay" aria-label="장소를 추가할 날짜">${[0,1,2].map(d=>`<option value="${d}" ${d===state.day?'selected':''}>${E.date(d)}</option>`).join('')}</select></label></div>${state.type==='hotel'?`<div class="stay-filter"><select id="stayKind" aria-label="숙소 종류"><option value="all" ${state.stayKind==='all'?'selected':''}>호텔·감성 숙소 전체</option><option value="hotel" ${state.stayKind==='hotel'?'selected':''}>호텔</option><option value="spa" ${state.stayKind==='spa'?'selected':''}>스파·감성 숙소</option></select><label class="check"><input id="bathOnly" type="checkbox" ${state.bathOnly?'checked':''}> 욕조 안내 확인</label></div>`:''}</div><div id="candidateList" class="candidate-list"></div>`;
+ $('candidatePanel').innerHTML=`<div class="candidate-head"><div class="candidate-title"><h2>추천 장소 <small id="candidateCount"></small></h2><label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" aria-label="장소 검색" placeholder="장소·음식·동네" value="${esc(state.query)}"></label></div><div class="city-tabs" role="group" aria-label="도시 필터">${[['all','두 도시 전체'],['여수','여수'],['순천','순천']].map(([k,v])=>`<button data-city="${k}" aria-pressed="${state.city===k}" class="${state.city===k?'active':''}">${v}</button>`).join('')}<button data-action="fit-filter" class="filter-map">지도에 맞춤 ↗</button></div><div class="category-tabs" role="group" aria-label="장소 분류">${[['all','전체'],['sight','관광·체험'],['food','맛집'],['cafe','카페'],['hotel','숙소'],['aquarium','아쿠아리움']].map(([k,v])=>`<button data-category="${k}" class="${state.type===k?'active':''}" aria-pressed="${state.type===k}">${v}</button>`).join('')}</div><div class="candidate-info"><label class="check"><input id="mapFilter" type="checkbox" ${state.mapFilter?'checked':''}> 지도도 필터 적용</label><label>추가할 날 <select id="addDay" aria-label="장소를 추가할 날짜">${[0,1,2].map(d=>`<option value="${d}" ${d===state.day?'selected':''}>${E.date(d)}</option>`).join('')}</select></label></div>${state.type==='hotel'?`<div class="stay-filter"><select id="stayKind" aria-label="숙소 종류"><option value="all" ${state.stayKind==='all'?'selected':''}>호텔·감성 숙소 전체</option><option value="hotel" ${state.stayKind==='hotel'?'selected':''}>호텔</option><option value="spa" ${state.stayKind==='spa'?'selected':''}>스파·감성 숙소</option></select><label class="check"><input id="bathOnly" type="checkbox" ${state.bathOnly?'checked':''}> 욕조 안내 확인</label></div>`:''}</div><div id="candidateList" class="candidate-list"></div>`;
  renderCandidateList();$('candidateList').scrollTop=scroll;
 }
 function visiblePoints(){return region().points.filter(p=>p.type!=='transit'&&(state.city==='all'||p.city===state.city)&&(state.type==='all'||state.type==='aquarium'&&p.aquarium||p.type===state.type)&&(!state.bathOnly||state.type!=='hotel'||p.room?.bathStatus==='confirmed')&&(state.type!=='hotel'||state.stayKind==='all'||p.stayKind===state.stayKind)&&(!state.query||[p.name,p.city,p.area,p.desc,...(p.tags||[])].join(' ').toLowerCase().includes(state.query.toLowerCase())));}
@@ -87,19 +90,21 @@ function adjustDuration(uid,delta){const v=findItem(uid);if(!v||!Number.isFinite
 function moveStop(uid,day,index){const v=findItem(uid);if(!v||!Number.isInteger(day)||day<0||day>2||!Number.isFinite(index))return false;const target=plan().items[day];if(v.day!==day&&target.length>=30){toast('옮길 날짜에 이미 30곳이 있습니다.');return false;}index=E.clamp(Math.trunc(index),0,target.length-(day===v.day?1:0));if(v.day===day&&v.index===index)return false;state.day=day;state.editUid=uid;return mutate(p=>{p.items[v.day].splice(v.index,1);p.items[day].splice(index,0,v.item);});}
 function shiftStop(uid,delta){const v=findItem(uid);if(!v)return false;return moveStop(uid,v.day,v.index+delta);}
 function setPlannerView(view){cancelSort();state.plannerView=view==='sequence'?'sequence':'timeline';if(compactWorkspace())setPane('schedule');else renderPlanner();}
-function revealStop(uid){const b=result?.days.flatMap(d=>d.blocks).find(b=>b.uid===uid),scroll=$('timeScroll'),canvas=$('timeCanvas');if(b&&scroll&&canvas){const width=canvas.scrollWidth||1440*state.timeZoom;scroll.scrollLeft=Math.max(0,Math.min(b.start,1439)/1440*width-(scroll.clientWidth||600)*.3);}const rail=$('sequenceScroll');if(state.plannerView==='sequence'&&rail){const card=[...(rail.querySelectorAll?.('[data-sort-item]')||[])].find(x=>x.dataset.sortItem===uid);card?.scrollIntoView({block:'nearest',inline:'nearest',behavior:motion.matches?'auto':'smooth'});}}
-function focusTimeline(){const day=result?.days.find(d=>d.day===state.day),b=day?.blocks.find(b=>b.kind==='visit')||day?.blocks.find(b=>b.start>0),canvas=$('timeCanvas'),scroll=$('timeScroll');if(!scroll||!canvas)return;scroll.scrollLeft=Math.max(0,((b?.start||480)-45)/1440*(canvas.scrollWidth||1440*state.timeZoom));}
-function changeTimeZoom(delta){const sc=$('timeScroll'),canvas=$('timeCanvas'),width=canvas?.scrollWidth||1440*state.timeZoom,center=((sc?.scrollLeft||0)+(sc?.clientWidth||0)/2)/width;state.timeZoom=E.clamp(state.timeZoom+delta,1,6);renderPlanner();const next=$('timeCanvas')?.scrollWidth||1440*state.timeZoom;if($('timeScroll'))$('timeScroll').scrollLeft=Math.max(0,center*next-($('timeScroll').clientWidth||0)/2);}
+function timelineAxis(){return state.plannerExpanded?{vertical:false,pos:'left',size:'width',scroll:'scrollLeft',viewport:'clientWidth',extent:'scrollWidth',pointer:'clientX',end:'right'}:{vertical:true,pos:'top',size:'height',scroll:'scrollTop',viewport:'clientHeight',extent:'scrollHeight',pointer:'clientY',end:'bottom'};}
+function timelinePixels(){return 1440*state.timeZoom*(timelineAxis().vertical ? 0.7 : 1);}
+function revealStop(uid){const b=result?.days.flatMap(d=>d.blocks).find(b=>b.uid===uid),scroll=$('timeScroll'),canvas=$('timeCanvas'),a=timelineAxis();if(b&&scroll&&canvas){const size=canvas[a.extent]||timelinePixels();scroll[a.scroll]=Math.max(0,Math.min(b.start,1439)/1440*size-(scroll[a.viewport]||600)*.2);}const rail=$('sequenceScroll');if(state.plannerView==='sequence'&&rail){const card=[...(rail.querySelectorAll?.('[data-sort-item]')||[])].find(x=>x.dataset.sortItem===uid);card?.scrollIntoView({block:'nearest',inline:'nearest',behavior:motion.matches?'auto':'smooth'});}}
+function focusTimeline(){const day=result?.days.find(d=>d.day===state.day),b=day?.blocks.find(b=>b.kind==='visit')||day?.blocks.find(b=>b.start>0),canvas=$('timeCanvas'),scroll=$('timeScroll'),a=timelineAxis();if(!scroll||!canvas)return;scroll[a.scroll]=Math.max(0,((b?.start||480)-30)/1440*(canvas[a.extent]||timelinePixels()));}
+function changeTimeZoom(delta){const sc=$('timeScroll'),canvas=$('timeCanvas'),a=timelineAxis(),size=canvas?.[a.extent]||timelinePixels(),center=((sc?.[a.scroll]||0)+(sc?.[a.viewport]||0)/2)/size;state.timeZoom=E.clamp(state.timeZoom+delta,1,6);renderPlanner();const next=$('timeCanvas')?.[a.extent]||timelinePixels();if($('timeScroll'))$('timeScroll')[a.scroll]=Math.max(0,center*next-($('timeScroll')[a.viewport]||0)/2);}
 function renderPlanner(){cancelTimeline(false);const d=region();$('planner').hidden=!d;if(!d)return;const p=plan(),s=result,dayData=s.days.find(x=>x.day===state.day)||s.days.find(x=>x.day===0),day=dayData.day,visits=dayData.blocks.filter(b=>b.kind==='visit');
- const full=state.plannerExpanded||(compactWorkspace()&&state.pane==='schedule');
- const sc=$('timeScroll')?.dataset.positioned==='true'?$('timeScroll').scrollLeft:undefined,prevDay=$('timeScroll')?.dataset.day,railScroll=$('sequenceScroll')?.scrollLeft,bodyScroll=$('plannerBody')?.scrollTop;
- $('planner').className='planner'+(state.plannerExpanded?' expanded':'');
- $('planner').innerHTML=`<div class="planner-top"><h2>일정 <small>${p.friday?'3박 4일':'2박 3일'}</small></h2><div class="planner-view-buttons" role="group" aria-label="일정 보기 방식"><button data-planner-view="timeline" aria-pressed="${state.plannerView==='timeline'}">시간표</button><button data-planner-view="sequence" aria-pressed="${state.plannerView==='sequence'}">방문 순서</button></div><div class="planner-tools"><button data-action="undo" ${undo.length?'':'disabled'} aria-label="되돌리기" title="되돌리기 (⌘/Ctrl Z)">${icon('undo')}</button><button data-action="redo" ${redo.length?'':'disabled'} aria-label="다시 실행" title="다시 실행 (⌘/Ctrl Shift Z)">${icon('redo')}</button><button data-action="settings" aria-label="출발·이동·숙소 설정" title="출발·이동·숙소">${icon('settings')}</button><button data-action="save" aria-label="일정 저장·가져오기" title="저장·가져오기">${icon('save')}</button><button class="planner-more" data-action="planner-menu" aria-label="일정 관리 메뉴">···</button><button data-action="expand-planner" aria-expanded="${full}" aria-label="${full?'일정표 접기':'일정표 크게 보기'}" title="${full?'접기':'크게 보기'}">${icon(full?'collapse':'expand')}</button></div></div>
+ const full=state.plannerExpanded||timelineAxis().vertical,a=timelineAxis();
+ const sc=$('timeScroll')?.dataset.positioned==='true'&&$('timeScroll').dataset.axis===a.pos?$('timeScroll')[a.scroll]:undefined,prevDay=$('timeScroll')?.dataset.day,railScroll=$('sequenceScroll')?.scrollLeft,bodyScroll=$('plannerBody')?.scrollTop;
+ $('planner').className='planner'+(state.plannerExpanded?' expanded':'')+(a.vertical?' timeline-vertical':' timeline-horizontal');
+ $('planner').innerHTML=`<div class="planner-top"><h2>일정 <small>${p.friday?'3박 4일':'2박 3일'}</small></h2><div class="planner-view-buttons" role="group" aria-label="일정 보기 방식"><button data-planner-view="timeline" aria-pressed="${state.plannerView==='timeline'}">시간표</button><button data-planner-view="sequence" aria-pressed="${state.plannerView==='sequence'}">방문 순서</button></div><div class="planner-tools"><button data-action="undo" ${undo.length?'':'disabled'} aria-label="되돌리기" title="되돌리기 (⌘/Ctrl Z)">${icon('undo')}</button><button data-action="redo" ${redo.length?'':'disabled'} aria-label="다시 실행" title="다시 실행 (⌘/Ctrl Shift Z)">${icon('redo')}</button><button data-action="settings" aria-label="출발·이동·숙소 설정" title="출발·이동·숙소">${icon('settings')}</button><button data-action="save" aria-label="일정 저장·가져오기" title="저장·가져오기">${icon('save')}</button><button class="planner-more" data-action="planner-menu" aria-label="일정 관리 메뉴">···</button><button data-action="expand-planner" aria-expanded="${state.plannerExpanded}" aria-label="${state.plannerExpanded?'일정표 접기':'일정표 크게 보기'}" title="${state.plannerExpanded?'접기':'크게 보기'}">${icon(state.plannerExpanded?'collapse':'expand')}</button></div></div>
  <div class="planner-days"><div class="day-buttons" role="group" aria-label="여행 날짜">${(p.friday?[-1,0,1,2]:[0,1,2]).map(v=>`<button data-plan-day="${v}" aria-pressed="${v===day}" class="${v===day?'active':''}">${E.date(v)}<span>${v<0?'선출발':p.items[v].length+'곳'}</span></button>`).join('')}</div><div class="timeline-actions"><button class="add-place" data-action="add-place" aria-label="선택한 날짜에 장소 추가">${icon('plus')}<span>장소</span></button><button id="playRoute" data-action="play">▶ 일정 시작</button></div></div>
- <div class="timeline-selection" id="timelineSelection" ${state.plannerView==='timeline'?'':'hidden'}>${timelineSelectionHtml(dayData)}</div><div id="timelineLive" class="timeline-live" role="status" aria-live="polite"></div><div class="planner-body" id="plannerBody"><div class="time-scroll" id="timeScroll" data-day="${day}" ${state.plannerView==='timeline'?'':'hidden'} tabindex="0" aria-label="${E.date(day)} 24시간 일정표. 빈 줄에서 좌우 스크롤, 블록과 양 끝을 끌어 10분 단위 편집"><div class="time-canvas" id="timeCanvas" style="min-width:${1440*state.timeZoom}px"><div class="hour-ruler">${Array.from({length:25},(_,i)=>`<span style="left:${i/24*100}%">${String(i).padStart(2,'0')}</span>`).join('')}</div><div class="time-row">${timelineHtml(dayData.blocks)}<div id="timelineGhost" class="timeline-ghost" hidden></div></div><button class="time-add-track" data-timeline-add aria-label="원하는 시간에 장소 추가">${Array.from({length:24},(_,i)=>`<span>＋ ${String(i).padStart(2,'0')}시</span>`).join('')}</button></div></div>
- <div class="sequence-scroll" id="sequenceScroll" ${state.plannerView==='sequence'?'':'hidden'}>${sequenceHtml(visits,dayData,full)}</div>${full&&state.plannerView==='timeline'?`<div class="planner-extra"><div class="extra-heading"><span>방문 순서</span><small>손잡이로 순서 이동 · ＋ / −로 체류시간 조절</small></div>${state.plannerView==='timeline'?sequenceHtml(visits,dayData,true):''}</div>`:''}</div>
+ <div class="timeline-selection" id="timelineSelection" ${state.plannerView==='timeline'?'':'hidden'}>${timelineSelectionHtml(dayData)}</div><div id="timelineLive" class="timeline-live" role="status" aria-live="polite"></div><div class="planner-body" id="plannerBody"><div class="time-scroll" id="timeScroll" data-day="${day}" data-axis="${a.pos}" ${state.plannerView==='timeline'?'':'hidden'} tabindex="0" aria-label="${E.date(day)} 24시간 일정표. ${a.vertical?'위아래':'좌우'} 스크롤, 블록과 양 끝을 끌어 10분 단위 편집"><div class="time-canvas" id="timeCanvas" style="${a.vertical?'height':'min-width'}:${timelinePixels()}px"><div class="hour-ruler">${Array.from({length:25},(_,i)=>`<span style="${a.pos}:${i/24*100}%">${String(i).padStart(2,'0')}</span>`).join('')}</div><div class="time-row">${timelineHtml(dayData.blocks)}<div id="timelineGhost" class="timeline-ghost" hidden></div></div><button class="time-add-track" data-timeline-add aria-label="원하는 시간에 장소 추가">${Array.from({length:24},(_,i)=>`<span>＋ ${String(i).padStart(2,'0')}시</span>`).join('')}</button></div></div>
+ <div class="sequence-scroll" id="sequenceScroll" ${state.plannerView==='sequence'?'':'hidden'}>${sequenceHtml(visits,dayData,full)}</div>${state.plannerExpanded&&state.plannerView==='timeline'?`<div class="planner-extra"><div class="extra-heading"><span>방문 순서</span><small>손잡이로 순서 이동 · ＋ / −로 체류시간 조절</small></div>${state.plannerView==='timeline'?sequenceHtml(visits,dayData,true):''}</div>`:''}</div>
  <div class="planner-foot"><div class="timeline-zoom" ${state.plannerView==='timeline'?'':'hidden'}><button data-action="time-out" ${state.timeZoom<=1?'disabled':''} aria-label="시간표 축소">−</button><span>${Math.round(state.timeZoom*100)}%</span><button data-action="time-in" ${state.timeZoom>=6?'disabled':''} aria-label="시간표 확대">＋</button><button class="jump-time" data-action="fit-day">첫 일정</button></div><span class="day-totals">${visits.length}곳<span> · 방문 ${durationLabel(dayData.visitMin)} · 이동 ${durationLabel(dayData.travelMin)}</span></span><button class="planner-health ${s.returnMinute>1080?'late':''}" data-action="schedule-info" aria-label="귀환 시간과 일정 확인">귀환 ${E.time(s.returnMinute)}${s.warnings.length?`<i>${s.warnings.length}</i>`:''}</button></div>`;
- if(sc!==undefined&&String(day)===prevDay)$('timeScroll').scrollLeft=sc;else focusTimeline();$('timeScroll').dataset.positioned=String($('timeScroll').clientWidth>0);if($('sequenceScroll'))$('sequenceScroll').scrollLeft=String(day)===prevDay?railScroll||0:0;if($('plannerBody'))$('plannerBody').scrollTop=bodyScroll||0;updatePlaybackControls();
+ if(sc!==undefined&&String(day)===prevDay)$('timeScroll')[a.scroll]=sc;else focusTimeline();$('timeScroll').dataset.positioned=String($('timeScroll').clientWidth>0);if($('sequenceScroll'))$('sequenceScroll').scrollLeft=String(day)===prevDay?railScroll||0:0;if($('plannerBody'))$('plannerBody').scrollTop=bodyScroll||0;updatePlaybackControls();
 }
 function sequenceHtml(visits,dayData,vertical=false){if(!visits.length)return`<div class="schedule-empty"><div><b>${state.day<0?'금요일은 이동과 숙박':'아직 정한 장소가 없습니다'}</b><span>${state.day<0?'출발 시각과 숙소는 설정에서 변경하세요.':'후보를 골라 이 날짜에 추가하세요.'}</span></div><button data-action="${state.day<0?'settings':'add-place'}">${state.day<0?'설정 열기':'＋ 장소 추가'}</button></div>`;return`<ol class="sequence-list ${vertical?'vertical':''}">${visits.map((b,i)=>{const v=findItem(b.uid),prev=dayData.blocks.find(x=>x.uid==='travel-'+b.uid),p=point(b.poi);return`<li class="stop-card ${state.editUid===b.uid?'selected':''}" data-sort-item="${b.uid}"><div class="stop-card-top"><button class="drag-handle" data-drag-stop="${b.uid}" aria-label="${esc(b.title)} 순서 이동. 위아래 화살표로 이동" title="끌어서 순서 이동">${icon('grip')}</button><span class="stop-index">${String(i+1).padStart(2,'0')}</span><span class="stop-category">${p.aquarium?'아쿠아리움':CATS[p.type]}</span><button class="stop-delete" data-remove-stop="${b.uid}" aria-label="${esc(b.title)} 일정에서 삭제">${icon('trash')}</button></div><button class="stop-main" data-edit="${b.uid}"><strong>${esc(b.title)}</strong><span>${E.time(b.start)} — ${E.time(b.end)}</span></button><div class="stop-controls"><div class="mini-stepper"><button data-resize-stop="${b.uid}" data-delta="-10" ${b.duration<=10?'disabled':''} aria-label="${esc(b.title)} 10분 줄이기">−</button><span>${durationLabel(b.duration)}</span><button data-resize-stop="${b.uid}" data-delta="10" ${b.duration>=720?'disabled':''} aria-label="${esc(b.title)} 10분 늘리기">＋</button></div><div class="stop-order"><button data-shift-stop="${b.uid}" data-delta="-1" ${i===0?'disabled':''} aria-label="${esc(b.title)} 한 칸 앞으로">${icon('up')}</button><button data-shift-stop="${b.uid}" data-delta="1" ${i===visits.length-1?'disabled':''} aria-label="${esc(b.title)} 한 칸 뒤로">${icon('down')}</button></div></div><div class="stop-card-foot">${prev?`<button class="stop-transfer" data-travel-index="${dayData.blocks.indexOf(prev)}" data-travel-from="${prev.from}" data-travel-to="${prev.to}" aria-label="${esc(prev.title)} 이동시간 확인">${MODES[prev.mode]||'이동'} ${durationLabel(prev.minutes)} ↗</button>`:'<span>이동 없음</span>'}<button data-relocate="${b.uid}">날짜·순서 변경 ↗</button></div></li>`;}).join('')}<li class="stop-add"><button data-action="add-place">${icon('plus')}장소 추가</button></li></ol>`;}
 function stopListHtml(visits){const day=result.days.find(d=>d.day===state.day);return`<div class="day-stop-list">${sequenceHtml(visits,day,true)}</div>`;}
@@ -122,10 +127,10 @@ function timelineHtml(blocks){
 }
 function timeBlock(b,index=0,domKey=b.edit?.key||b.kind+':'+index){
  if(b.start>=1440||b.end<=0||b.end<=b.start)return'';
- const left=E.clamp(b.start,0,1440)/1440*100,width=Math.max(.05,(Math.min(b.end,1440)-Math.max(b.start,0))/1440*100),edit=b.edit,selected=edit?.key===state.timelineKey;
+ const left=E.clamp(b.start,0,1440)/1440*100,width=Math.max(.05,(Math.min(b.end,1440)-Math.max(b.start,0))/1440*100),edit=b.edit,selected=edit?.key===state.timelineKey,a=timelineAxis();
  const attrs=b.kind==='visit'?`data-edit="${b.uid}"`:b.kind==='travel'?`data-travel-index="${index}" data-travel-info="${esc(b.uid||'')}" data-travel-from="${b.from}" data-travel-to="${b.to}"`:`data-block-info="${esc(b.title)}"`;
  const parts=edit?.parts||['move','start','end'],label=b.title+' '+E.time(b.start)+'부터 '+E.time(b.end);
- return `<div data-timeline-id="${esc(domKey)}" class="time-event ${b.kind}${edit?' editable':''}${selected?' selected':''}" style="left:${left}%;width:${width}%" ${edit?`data-time-key="${esc(edit.key)}"`:''}><button class="time-block ${b.kind} ${selected?'active':''}" ${attrs} ${edit&&parts.includes('move')?'data-time-part="move"':''} title="${esc(label)}${edit?' · 10분 단위 편집':' · 연결 일정에 따라 자동 계산'}" aria-label="${esc(label)}"><span>${b.kind==='travel'?MODES[b.mode]||'이동':esc(b.title)}</span><small>${E.time(b.start)}${b.kind==='visit'?' · '+durationLabel(b.end-b.start):''}</small></button>${edit?['start','end'].filter(part=>parts.includes(part)).map(part=>`<button class="time-handle ${part}" data-time-part="${part}" aria-label="${esc(b.title)} ${part==='start'?'시작':'종료'} 시간 조절" title="${part==='start'?'왼쪽':'오른쪽'} 끝 끌기 · 방향키 10분"><i></i></button>`).join(''):''}</div>`;
+ return `<div data-timeline-id="${esc(domKey)}" class="time-event ${b.kind}${b.end-b.start<25?' short-event':''}${edit?' editable':''}${selected?' selected':''}" style="${a.pos}:${left}%;${a.size}:${width}%" ${edit?`data-time-key="${esc(edit.key)}"`:''}><button class="time-block ${b.kind} ${selected?'active':''}" ${attrs} ${edit&&parts.includes('move')?'data-time-part="move"':''} title="${esc(label)}${edit?' · 10분 단위 편집':' · 연결 일정에 따라 자동 계산'}" aria-label="${esc(label)}"><span>${b.kind==='travel'?MODES[b.mode]||'이동':esc(b.title)}</span><small>${E.time(b.start)}${b.kind==='visit'?' · '+durationLabel(b.end-b.start):''}</small></button>${edit?['start','end'].filter(part=>parts.includes(part)).map(part=>`<button class="time-handle ${part}" data-time-part="${part}" aria-label="${esc(b.title)} ${part==='start'?'시작':'종료'} 시간 조절" title="${a.vertical?(part==='start'?'위쪽':'아래쪽'):(part==='start'?'왼쪽':'오른쪽')} 끝 끌기 · 방향키 10분"><i></i></button>`).join(''):''}</div>`;
 }
 function selectedItem(){return findItem(state.editUid);}
 function editorHtml(){const v=selectedItem();if(!v)return`<div class="editor-empty">시간표의 장소 블록을 선택하면 <b>머무는 시간·방문 순서·이동시간</b>을 조절할 수 있습니다.</div>`;const p=point(v.item.poi),b=result.days.flatMap(d=>d.blocks).find(x=>x.uid===v.item.uid),travel=result.days.flatMap(d=>d.blocks).find(x=>x.uid==='travel-'+v.item.uid);return`<div class="stop-editor"><div class="edit-name"><b>${esc(p.name)}</b><span>${E.time(b?.start||0)}–${E.time(b?.end||0)}</span><button data-action="detail-selected">정보·예약 ↗</button></div><div class="edit-fields"><label>방문일<select id="editDay">${[0,1,2].map(d=>`<option value="${d}" ${d===v.day?'selected':''}>${E.date(d)}</option>`).join('')}</select></label><div class="duration-field"><label for="duration">머무는 시간</label><div class="stepper"><button data-duration="-10" aria-label="체류시간 10분 줄이기">−</button><input id="duration" type="number" min="10" max="720" step="10" value="${v.item.duration}" aria-label="체류시간 분"><span>분</span><button data-duration="10" aria-label="체류시간 10분 늘리기">＋</button></div></div><label>희망 시작 <small>비우면 자동</small><input id="preferredStart" type="time" step="600" value="${v.item.start===null?'':E.time(v.item.start)}"></label><label>이전 장소에서<select id="legMode">${modeOptions(v.item.mode||plan().mode)}</select></label><label>이동시간 <small>예상 ${travel?.minutes||0}분</small><input id="legMinutes" type="number" min="0" max="600" step="10" placeholder="자동 계산" value="${plan().legTiming?.[travel?.edit?.legKey]?.duration??v.item.travel??''}"></label></div><div class="edit-actions"><button data-move="-1" ${v.index===0?'disabled':''}>↑ 앞으로</button><button data-move="1" ${v.index===plan().items[v.day].length-1?'disabled':''}>↓ 뒤로</button><button data-action="recommended-duration">추천 체류시간</button><button data-action="clear-start">시작·이동 자동 계산</button><button data-action="remove" class="danger">일정에서 삭제</button></div></div>`;}
@@ -218,7 +223,7 @@ function travelInfo(b){state.timelineKey=b.edit?.key||null;modal('이동시간 �
 function timelineBlock(key){return result?.days.find(d=>d.day===state.day)?.blocks.find(b=>b.edit?.key===key);}
 function timelineSelectionHtml(day){
  const b=day.blocks.find(b=>b.edit?.key===state.timelineKey);
- if(!b)return '<span>10분 칸 · 끌면 앞뒤 일정도 함께 정렬</span><small>양 끝으로 시간 조절 · 빈 줄은 스크롤</small>';
+ if(!b)return '<span>10분 칸 · '+(timelineAxis().vertical?'위아래':'좌우')+'로 끌어 이동</span><small>양 끝으로 시간 조절</small>';
  return `<strong>${esc(b.title)}</strong><span>${E.time(b.start)}–${E.time(b.end)}</span><button data-action="timeline-edit">${b.kind==='visit'?'상세 편집':b.kind==='travel'?'이동 상세':'숙소 설정'}</button>${b.kind==='visit'?'<button data-action="timeline-remove" class="danger">삭제</button>':''}<button data-action="timeline-clear" aria-label="시간표 선택 해제">×</button>`;
 }
 function selectTimeline(key){const b=timelineBlock(key);if(!b)return;state.timelineKey=key;state.editUid=b.edit.type==='visit'?b.edit.uid:null;renderPlanner();}
@@ -227,7 +232,7 @@ function timelineLayout(floatingKey){
  for(const el of document.querySelectorAll('.time-row [data-timeline-id]')){
   const rect=el.getBoundingClientRect();
   const floating=el.dataset.timeKey===floatingKey&&ghost&&!ghost.hidden?ghost.getBoundingClientRect():rect;
-  layout.set(el.dataset.timelineId,{left:floating.left,top:rect.top,width:floating.width});
+  layout.set(el.dataset.timelineId,{left:floating.left,top:timelineAxis().vertical?floating.top:rect.top,width:floating.width,height:timelineAxis().vertical?floating.height:rect.height});
  }
  return layout;
 }
@@ -241,8 +246,8 @@ function animateTimeline(layout,activeKey){
   if(el.dataset.timeKey===activeKey||!el.animate)continue;
   if(old){
    const x=old.left-next.left,y=old.top-next.top;
-   if(Math.abs(x)<.5&&Math.abs(y)<.5&&Math.abs(old.width-next.width)<.5)continue;
-   el.animate([{transform:`translate(${x}px,${y}px)`,width:old.width+'px'},{transform:'translate(0,0)',width:next.width+'px'}],{duration:180,easing:'cubic-bezier(.2,.7,.2,1)',id:'timeline-flow'});
+   if(Math.abs(x)<.5&&Math.abs(y)<.5&&Math.abs(old.width-next.width)<.5&&Math.abs(old.height-next.height)<.5)continue;
+   el.animate([{transform:`translate(${x}px,${y}px)`,width:old.width+'px',height:old.height+'px'},{transform:'translate(0,0)',width:next.width+'px',height:next.height+'px'}],{duration:180,easing:'cubic-bezier(.2,.7,.2,1)',id:'timeline-flow'});
   }else el.animate([{opacity:0},{opacity:1}],{duration:120,id:'timeline-flow'});
  }
 }
@@ -263,7 +268,7 @@ function syncTimeline(blocks,activeKey,layout=timelineLayout()){
   }else el.innerHTML=fresh.innerHTML;
  }
  for(const el of existing.values()){
-  if(el.dataset.timeKey===activeKey){el.style.left='100%';el.style.width='0';}
+  if(el.dataset.timeKey===activeKey){const a=timelineAxis();el.style[a.pos]='100%';el.style[a.size]='0';}
   else el.remove();
  }
  animateTimeline(layout,activeKey);
@@ -284,14 +289,14 @@ function onTimelineDown(e){
  const event=handle.closest('[data-time-key]'),b=timelineBlock(event?.dataset.timeKey);
  if(!b||!(b.edit.parts||['move','start','end']).includes(handle.dataset.timePart))return;
  pauseMap();cancelSort();
- const scroll=$('timeScroll'),canvas=$('timeCanvas');
- timelineGesture={id:e.pointerId,handle,event,key:event.dataset.timeKey,part:handle.dataset.timePart,day:state.day,course:key(),original:JSON.parse(JSON.stringify(plan())),block:b,x:e.clientX,lastX:e.clientX,scroll,scrollStart:scroll.scrollLeft,width:canvas.getBoundingClientRect().width,moved:false,frame:0,preview:null};
+ const scroll=$('timeScroll'),canvas=$('timeCanvas'),a=timelineAxis();
+ timelineGesture={id:e.pointerId,handle,event,key:event.dataset.timeKey,part:handle.dataset.timePart,day:state.day,course:key(),original:JSON.parse(JSON.stringify(plan())),block:b,axis:a,x:e[a.pointer],lastX:e[a.pointer],scroll,scrollStart:scroll[a.scroll],width:canvas.getBoundingClientRect()[a.size],moved:false,frame:0,preview:null};
  try{handle.setPointerCapture(e.pointerId);}catch{}
 }
 function updateTimelinePreview(){
  const g=timelineGesture;if(!g||!g.moved)return;
  const anchor=g.part==='end'?g.block.end:g.block.start;
- const requested=anchor+(g.lastX-g.x+g.scroll.scrollLeft-g.scrollStart)/g.width*1440;
+ const requested=anchor+(g.lastX-g.x+g.scroll[g.axis.scroll]-g.scrollStart)/g.width*1440;
  const snapped=E.snap10(requested);
  if(g.lastSnap!==snapped){
   g.lastSnap=snapped;g.preview=E.retime(region(),g.original,g.day,g.key,g.part,requested);
@@ -303,44 +308,44 @@ function updateTimelinePreview(){
  const span=Math.max(10,Math.min(1440,b.end)-Math.min(1430,b.start));
  // The floating card follows the pointer; the outlined landing slot stays on the grid.
  const left=g.part==='move'?E.clamp(requested,0,1440-span):Math.min(1430,b.start);
- ghost.style.left=(left/1440*100)+'%';ghost.style.width=(span/1440*100)+'%';
+ ghost.style[g.axis.pos]=(left/1440*100)+'%';ghost.style[g.axis.size]=(span/1440*100)+'%';
  ghost.innerHTML='<strong>'+esc(b.title)+'</strong><small>'+E.time(b.start)+'–'+E.time(b.end)+'</small>';
  $('timelineLive').textContent=E.time(b.start)+'–'+E.time(b.end)+(preview.position?' · '+preview.position+'번째':'')+(preview.shifted?' · '+preview.shifted+'곳 함께 이동':'')+(preview.adjusted?' · 이동시간 반영':'');
 }
 function timelineAutoScroll(){
  const g=timelineGesture;if(!g||!g.moved)return;
- const r=g.scroll.getBoundingClientRect(),direction=g.lastX<r.left+36?-1:g.lastX>r.right-36?1:0;
- if(direction){const old=g.scroll.scrollLeft;g.scroll.scrollLeft+=direction*12;if(old!==g.scroll.scrollLeft)updateTimelinePreview();}
+ const r=g.scroll.getBoundingClientRect(),direction=g.lastX<r[g.axis.pos]+36?-1:g.lastX>r[g.axis.end]-36?1:0;
+ if(direction){const old=g.scroll[g.axis.scroll];g.scroll[g.axis.scroll]+=direction*12;if(old!==g.scroll[g.axis.scroll])updateTimelinePreview();}
  g.frame=requestAnimationFrame(timelineAutoScroll);
 }
 function onTimelineMove(e){
  const g=timelineGesture;if(!g||g.id!==e.pointerId)return;
- g.lastX=e.clientX;
- if(!g.moved&&Math.abs(e.clientX-g.x)<(e.pointerType==='touch'?7:4))return;
+ g.lastX=e[g.axis.pointer];
+ if(!g.moved&&Math.abs(e[g.axis.pointer]-g.x)<(e.pointerType==='touch'?7:4))return;
  if(!g.moved){g.moved=true;g.event.classList.add('timeline-dragging');document.body?.classList.add('timeline-editing');g.frame=requestAnimationFrame(timelineAutoScroll);}
  updateTimelinePreview();e.preventDefault();
 }
 function onTimelineEnd(e){
  const g=timelineGesture;if(!g||g.id!==e.pointerId)return;
  const commit=e.type==='pointerup'&&g.moved&&g.course===key()&&g.day===state.day;
- if(commit){g.lastX=e.clientX;updateTimelinePreview();}
+ if(commit){g.lastX=e[g.axis.pointer];updateTimelinePreview();}
  const preview=g.preview,layout=commit&&preview?timelineLayout(g.key):null;cancelTimeline(!commit);
  if(g.moved)suppressTimelineClick=performance.now()+500;
  if(commit&&preview){state.timelineKey=g.key;state.editUid=preview.block.edit.type==='visit'?preview.block.edit.uid:null;const changed=mutate(p=>Object.assign(p,preview.plan));if(changed){toast(E.time(preview.block.start)+'–'+E.time(preview.block.end)+' · '+(preview.shifted?'앞뒤 일정을 함께 정렬했습니다.':preview.adjusted?'이동·최소시간을 반영했습니다.':'10분 칸으로 변경했습니다.'),true);}else renderPlanner();animateTimeline(layout);}
 }
 function timelineKeyboard(e){
- const control=e.target.closest('[data-time-part]');if(!control||!['ArrowLeft','ArrowRight'].includes(e.key))return;
+ const control=e.target.closest('[data-time-part]');if(!control||!['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key))return;
  const event=control.closest('[data-time-key]'),b=timelineBlock(event?.dataset.timeKey);if(!b)return;
  const part=control.dataset.timePart;if(!(b.edit.parts||['move','start','end']).includes(part))return;
- e.preventDefault();const delta=(e.key==='ArrowLeft'?-1:1)*(e.shiftKey?60:10),at=(part==='end'?b.end:b.start)+delta;
+ e.preventDefault();const delta=(['ArrowLeft','ArrowUp'].includes(e.key)?-1:1)*(e.shiftKey?60:10),at=(part==='end'?b.end:b.start)+delta;
  const preview=E.retime(region(),plan(),state.day,b.edit.key,part,at);if(!preview)return;
  const layout=timelineLayout();state.timelineKey=b.edit.key;mutate(p=>Object.assign(p,preview.plan));animateTimeline(layout);
  const next=[...document.querySelectorAll('[data-time-key]')].find(x=>x.dataset.timeKey===b.edit.key)?.querySelector('[data-time-part="'+part+'"]');next?.focus({preventScroll:true});
 }
 function pickTimelineTime(e){
- const rect=$('timeCanvas').getBoundingClientRect(),scroll=$('timeScroll');
- const x=e.detail===0?scroll.scrollLeft+scroll.clientWidth/2:e.clientX-rect.left;
- openPlacePicker(E.clamp(E.snap10(x/rect.width*1440),0,1430));
+ const rect=$('timeCanvas').getBoundingClientRect(),scroll=$('timeScroll'),a=timelineAxis();
+ const x=e.detail===0?scroll[a.scroll]+scroll[a.viewport]/2:e[a.pointer]-rect[a.pos];
+ openPlacePicker(E.clamp(E.snap10(x/rect[a.size]*1440),0,1430));
 }
 document.addEventListener('pointerdown',onTimelineDown);
 window.addEventListener('pointermove',onTimelineMove,{passive:false});
@@ -425,7 +430,7 @@ syncVisibleViewport();
 window.visualViewport?.addEventListener('resize',syncVisibleViewport);
 window.visualViewport?.addEventListener('scroll',syncVisibleViewport);
 window.addEventListener('resize',syncVisibleViewport);
-matchMedia('(max-width: 900px)').addEventListener('change',syncWorkspace);
+matchMedia('(max-width: 1179px)').addEventListener('change',syncWorkspace);
 matchMedia('(max-width: 1199px)').addEventListener('change',()=>{if(!matchMedia('(max-width: 1199px)').matches)closeRegions();});
 window.addEventListener('hashchange',()=>{const [rid,ci]=(location.hash.slice(1)||'').split('/');const d=DATA.find(x=>x.id===rid);if(d){const course=courseIndex(d,ci);if(state.region!==rid||state.course!==course)selectRegion(rid,course,false);}else if(!rid&&region())goNational();});
 

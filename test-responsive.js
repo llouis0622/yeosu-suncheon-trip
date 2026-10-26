@@ -19,12 +19,15 @@ for(const [w,h] of sizes){
  check(el('html').style['--visible-height']===h+'px','visible height follows viewport');
  for(const r of DATA)for(let c=0;c<r.courses.length;c++){
   run(`selectRegion(${JSON.stringify(r.id)},${c},false)`);
+  check(run('state.pane')===(w<=1179?'map':'split'),'initial pane prioritizes map');
+  check(el('planner').className.includes('timeline-vertical'),'default side timeline uses vertical time axis');
   context.setPlannerView('timeline');context.setPane('schedule');
   check(run('state.pane')==='schedule'&&el('pane-schedule').attrs['aria-pressed']==='true','schedule tab is selectable');
   check(el('planner').innerHTML.includes('data-action="add-place"'),'schedule retains add control');
-  if(w<=900)check(el('planner').innerHTML.includes('planner-extra'),'compact schedule exposes full visit list alongside timeline');
+  if(w<=1179)check(!el('planner').innerHTML.includes('planner-extra'),'compact schedule avoids a duplicate visit list');
+  else check(el('planner').className.includes('timeline-horizontal'),'focused desktop schedule uses horizontal time axis');
   context.setPlannerView('sequence');
-  if(w<=900&&run('plan().items[state.day].length'))check(el('planner').innerHTML.includes('sequence-list vertical'),'compact visits use vertical cards');
+  if(run('plan().items[state.day].length'))check(el('planner').innerHTML.includes('sequence-list vertical'),'visit order uses readable vertical cards');
   const uid=run('plan().items[0][0]?.uid');
   if(uid){
    const old=run('plan().items[0][0].duration');context.adjustDuration(uid,10);
@@ -42,6 +45,8 @@ const snapshot=run('JSON.stringify(plan())');
 width=390;context.syncWorkspace();
 check(run('state.pane')==='schedule'&&!run('state.plannerExpanded'),'desktop expansion becomes a compact schedule pane');
 check(run('JSON.stringify(plan())')===snapshot,'rotation preserves the entire plan');
+width=1440;context.syncWorkspace();check(run('state.plannerExpanded')&&run('timelineAxis().pos')==='left','widening schedule restores its horizontal time axis');
+width=390;context.syncWorkspace();
 context.togglePlanner();check(run('state.pane')==='map','compact collapse returns to map');
 context.setPlannerView('timeline');check(run('state.pane')==='schedule','compact dock opens timeline in schedule pane');
 context.openRegions();check(el('main').inert&&el('appHeader').inert,'drawer prevents focus behind it');
