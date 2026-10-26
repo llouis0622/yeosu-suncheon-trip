@@ -141,26 +141,44 @@ function retime(r,original,day,editKey,part,requested){
  else if(part==='start')start=clamp(target,Math.max(0,end-720),end-10);
  else end=clamp(target,start+10,Math.min(1440,start+720));
  const wanted={start,end};
+ if(start===block.start&&end===block.end)return{plan:p,schedule:before,block,requested:wanted,shifted:0,position:before.days[day].blocks.filter(b=>b.kind==='visit').findIndex(b=>b.edit.key===editKey)+1,adjusted:false};
+ // A drag is one reflow from the original snapshot, never a series of edits.
+ // Release soft start times in the affected chain; keep dwell times and service targets.
+ function releaseFrom(index){
+  const affected=new Set(p.items[day].slice(index).map(x=>x.uid));
+  for(const item of p.items[day])if(affected.has(item.uid))item.start=null;
+  const blocks=before.days[day].blocks,first=blocks.findIndex(b=>b.kind==='visit'&&affected.has(b.uid));
+  const legs=new Set(blocks.slice(first<0?blocks.indexOf(block)+1:Math.max(0,first-1)).filter(b=>b.edit?.type==='leg').map(b=>b.edit.legKey));
+  for(const [key,value] of Object.entries(p.legTiming||{})){
+   if(key.startsWith(day+':')&&(legs.has(key)||[...affected].some(uid=>key.endsWith(':'+uid)))){
+    delete value.start;if(value.duration==null)delete p.legTiming[key];
+   }
+  }
+ }
  if(edit.type==='visit'){
   const items=p.items[day],index=items.findIndex(x=>x.uid===edit.uid);if(index<0)return null;
   const item=items[index];
   if(part==='move'){
    items.splice(index,1);
    const visits=before.days[day].blocks.filter(x=>x.kind==='visit'&&x.uid!==item.uid);
-   const position=visits.findIndex(x=>x.start>=start);
+   const center=start+(end-start)/2;
+   const position=visits.findIndex(x=>(x.start+x.end)/2>center);
    items.splice(position<0?items.length:position,0,item);
   }
+  releaseFrom(Math.min(index,items.indexOf(item)));
   item.start=0;
   const earliest=schedule(r,p).days[day].blocks.find(x=>x.uid===item.uid).start;
   start=Math.max(start,Math.ceil(earliest/10)*10);
   item.start=clamp(start,0,1430);
   item.duration=part==='start'?clamp(end-start,10,720):clamp(wanted.end-wanted.start,10,720);
  }else if(edit.type==='leg'){
+  releaseFrom(before.days[day].blocks.filter(b=>b.kind==='visit'&&b.start<block.end).length);
   p.legTiming=p.legTiming||{};delete p.legTiming[edit.legKey];
   const earliest=schedule(r,p).days[day].blocks.find(x=>x.edit?.key===editKey)?.start??block.start;
   start=Math.max(start,Math.ceil(earliest/10)*10);
   p.legTiming[edit.legKey]={start:clamp(start,0,1430),duration:clamp(part==='start'?end-start:wanted.end-wanted.start,10,600)};
  }else if(edit.type==='service'){
+  releaseFrom(before.days[day].blocks.filter(b=>b.kind==='visit'&&b.start<block.end).length);
   const [departure,ride,minStart,maxStart,minDuration,maxDuration]=edit.fields;
   p[departure]=clamp(start,minStart,maxStart);p[ride]=clamp(end-start,minDuration,maxDuration);
   const actual=schedule(r,p).days[day].blocks.find(x=>x.edit?.key===editKey);
@@ -170,9 +188,11 @@ function retime(r,original,day,editKey,part,requested){
   p.hotelStarts=p.hotelStarts||[null,null];p.hotelStarts[day]=0;
   const earliest=schedule(r,p).days[day].blocks.find(x=>x.edit?.key===editKey).start;
   p.hotelStarts[day]=clamp(Math.max(start,Math.ceil(earliest/10)*10),0,1430);
- }else if(edit.type==='morning')p.starts[day]=clamp(end,300,1320);
+ }else if(edit.type==='morning'){releaseFrom(0);p.starts[day]=clamp(end,300,1320);}
  const next=schedule(r,p),actual=next.days[day].blocks.find(x=>x.edit?.key===editKey);
- return{plan:p,schedule:next,block:actual,requested:wanted,adjusted:actual.start!==wanted.start||actual.end!==wanted.end};
+ const visits=next.days[day].blocks.filter(b=>b.kind==='visit'),oldVisits=new Map(before.days[day].blocks.filter(b=>b.kind==='visit').map(b=>[b.uid,b]));
+ const shifted=visits.filter(b=>b.edit.key!==editKey&&(b.start!==oldVisits.get(b.uid)?.start||b.end!==oldVisits.get(b.uid)?.end)).length;
+ return{plan:p,schedule:next,block:actual,requested:wanted,shifted,position:visits.findIndex(b=>b.edit.key===editKey)+1,adjusted:actual.start!==wanted.start||actual.end!==wanted.end};
 }
 
 const api={snap10,retime,ORIGIN,origin,km,travel,createPlan,normalizePlan,schedule,isClosed,time,date,clamp};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.TripEngine=api;

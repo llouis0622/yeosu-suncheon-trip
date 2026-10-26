@@ -18,6 +18,14 @@ function pointer(doc,key,part,delta,type='touch',finish='pointerup'){
  else if(finish==='escape'){control.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));send(win,'pointerup',101,x+delta/1440*canvas.width);}
  else send(win,finish,101,x+delta/1440*canvas.width);
 }
+function beginPointer(doc,key,part,type='touch'){
+ const control=byKey(doc,key).querySelector('[data-time-part="'+part+'"]'),rect=control.getBoundingClientRect(),canvas=doc.querySelector('#timeCanvas').getBoundingClientRect(),win=doc.defaultView,x=rect.left+rect.width/2,y=rect.top+rect.height/2;
+ let px=x;
+ const send=(target,name)=>target.dispatchEvent(new win.PointerEvent(name,{pointerId:301,pointerType:type,isPrimary:true,button:0,buttons:name==='pointerup'?0:1,clientX:px,clientY:y,bubbles:true,cancelable:true}));
+ send(control,'pointerdown');
+ return {control,move(delta){px=x+delta/1440*canvas.width;send(win,'pointermove')},end(cancel=false){send(win,cancel?'pointercancel':'pointerup')}};
+}
+const visitSnapshot=doc=>JSON.stringify([...doc.querySelectorAll('.time-event.visit')].map(el=>[el.dataset.timeKey,...range(el)]).sort((a,b)=>a[0].localeCompare(b[0])));
 async function suite(w,h){
  let d=await load(w,h);if(w<=900)click(d,'#pane-schedule');await next();
  const main=d.querySelector('#main'),planner=d.querySelector('#planner');
@@ -28,7 +36,32 @@ async function suite(w,h){
  const first=d.querySelector('.time-event.visit'),key=first.dataset.timeKey,initial=range(first),count=d.querySelectorAll('.time-event.visit').length;
  const visible=d.querySelector('#timeScroll').getBoundingClientRect(),firstRect=first.getBoundingClientRect();
  log(firstRect.left<visible.right&&firstRect.right>visible.left,'first visit is visible when opening schedule');
- const sc=d.querySelector('#timeScroll'),beforeScroll=sc.scrollLeft,autoDirection=sc.scrollWidth-sc.clientWidth-sc.scrollLeft<100?-1:1,control=first.querySelector('[data-time-part="move"]'),rect=control.getBoundingClientRect(),beforeAuto=saved();
+ // Observe live reflow before pointerup, including repeated moves on one captured control.
+ const originalVisits=visitSnapshot(d),beforeFlow=saved(),neighbor=d.querySelectorAll('.time-event.visit')[1],neighborKey=neighbor.dataset.timeKey,neighborStart=range(neighbor)[0];
+ const resize=beginPointer(d,key,'end');resize.move(30);
+ log(range(byKey(d,neighborKey))[0]>neighborStart,'neighbor moves during live resize before release');
+ log(saved()===beforeFlow,'live preview does not save intermediate edits');
+ log(resize.control.isConnected,'active pointer control survives live reconciliation');
+ const animations=[...d.querySelectorAll('[data-timeline-id]')].flatMap(el=>el.getAnimations());
+ log(d.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches||animations.some(a=>a.id==='timeline-flow'),'neighbors animate toward their preview positions');
+ const liveVisits=visitSnapshot(d);resize.end();
+ log(visitSnapshot(d)===liveVisits,'drop keeps exactly the previewed schedule');
+ log(d.querySelector('#timelineGhost').hidden&&!d.querySelector('.timeline-dragging'),'drop removes ghost and landing placeholder');
+ await new Promise(resolve=>setTimeout(resolve,220));
+ const settled=[...d.querySelectorAll('.time-event.visit')].map(el=>el.getBoundingClientRect()).sort((a,b)=>a.left-b.left);
+ log(settled.every((rect,i)=>!i||rect.left>=settled[i-1].right-.5),'settled visit cards have no overlap');
+ click(d,'[data-action="undo"]');log(visitSnapshot(d)===originalVisits,'one undo restores all shifted neighbors');
+ const beforeCancel=saved(),drag=beginPointer(d,key,'move','mouse');drag.move(230);
+ log(range(byKey(d,neighborKey))[0]<neighborStart,'moving a visit later pulls its neighbor into the vacated slot');
+ drag.move(30);log(range(byKey(d,neighborKey))[0]>neighborStart,'moving back restores order and pushes the following visit');
+ drag.move(230);log(drag.control.isConnected,'repeated reorders keep the original control alive');
+ const ids=[...d.querySelectorAll('[data-timeline-id]')].map(el=>el.dataset.timelineId);
+ log(new Set(ids).size===ids.length,'live reordering creates no duplicate blocks');
+ drag.end(true);log(visitSnapshot(d)===originalVisits&&saved()===beforeCancel,'cancel restores every previewed neighbor without saving');
+ const beforeNoOp=saved(),noOp=beginPointer(d,key,'move');noOp.move(40);noOp.move(0);
+ log(visitSnapshot(d)===originalVisits,'dragging back to the original cell restores the full schedule');
+ noOp.end();log(saved()===beforeNoOp,'dropping in the original cell creates no extra saved edit');
+ const sc=d.querySelector('#timeScroll'),beforeScroll=sc.scrollLeft,autoDirection=sc.scrollWidth-sc.clientWidth-sc.scrollLeft<100?-1:1,control=byKey(d,key).querySelector('[data-time-part="move"]'),rect=control.getBoundingClientRect(),beforeAuto=saved();
  control.dispatchEvent(new d.defaultView.PointerEvent('pointerdown',{pointerId:201,pointerType:'touch',isPrimary:true,button:0,buttons:1,clientX:Math.max(visible.left+40,rect.left+20),clientY:rect.top+20,bubbles:true}));
  d.defaultView.dispatchEvent(new d.defaultView.PointerEvent('pointermove',{pointerId:201,pointerType:'touch',isPrimary:true,button:0,buttons:1,clientX:autoDirection===1?visible.right-5:visible.left+5,clientY:rect.top+20,bubbles:true,cancelable:true}));
  await next();await next();log(autoDirection===1?sc.scrollLeft>beforeScroll:sc.scrollLeft<beforeScroll,'drag near edge automatically scrolls timeline');

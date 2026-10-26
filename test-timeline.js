@@ -30,7 +30,8 @@ ok(v.block.end-v.block.start===10,'minimum stay is one ten-minute cell');
 const later=events(p,0).filter(b=>b.kind==='visit')[2];
 v=E.retime(r,p,0,key,'move',later.start+10);
 ok(v.plan.items[0].findIndex(x=>x.uid===first.uid)>1,'drag across visits changes visit order');
-ok(v.schedule.edges.some(e=>e.from==='ys_goso'&&e.to==='ys_aquaplanet'),'map connections follow new order');
+const beforeMoved=v.plan.items[0][v.position-2];
+ok(v.schedule.edges.some(e=>e.from===beforeMoved.poi&&e.to==='ys_aquaplanet'),'map connections follow new order');
 const leg=events(p,0).find(b=>b.edit?.type==='leg');
 v=E.retime(r,p,0,leg.edit.key,'end',leg.end+20);
 const restored=E.normalizePlan(r,v.plan),restoredLeg=event(restored,0,leg.edit.key);
@@ -46,4 +47,44 @@ const night=events(p,0).find(b=>b.edit?.type==='night');
 v=E.retime(r,p,0,night.edit.key,'start',1320);
 ok(v.plan.hotelStarts[0]===1320&&v.block.start===1320,'night edge controls arrival/rest time');
 ok(E.retime(r,p,0,key,'move',NaN)===null,'invalid gesture input rejected');
+// Stable fixture: no venue waits, ten-minute transfers, and explicitly placed visits.
+const flowRegion={...r,points:r.points.map(q=>({...q,hours:{}}))};
+const flow=E.createPlan(flowRegion,0);
+flow.items[1]=['sc_garden','sc_wetland','sc_brewworks','sc_nanulteo','sc_hwawol'].map((poi,i)=>({uid:'flow-'+i,poi,duration:40,start:550+i*50,travel:10,mode:'taxi'}));
+const flowEvents=p=>E.schedule(flowRegion,p).days[1].blocks.filter(b=>b.kind==='visit');
+const originalFlow=JSON.stringify(flow),initial=flowEvents(flow),flowKey=initial[1].edit.key;
+let ripple=E.retime(flowRegion,flow,1,flowKey,'end',initial[1].end+30);
+ok(flowEvents(ripple.plan)[2].start===initial[2].start+30,'extending pushes following visits');
+ripple=E.retime(flowRegion,flow,1,flowKey,'end',initial[1].end-20);
+ok(flowEvents(ripple.plan)[2].start===initial[2].start-20,'shortening pulls following manually placed visits forward');
+ok(ripple.plan.items[1][0].start===flow.items[1][0].start,'unaffected prefix keeps its chosen start');
+ok(ripple.plan.items[1][2].start===null,'following starts become automatic for ripple');
+ripple=E.retime(flowRegion,flow,1,flowKey,'move',initial[3].start);
+ok(ripple.plan.items[1].map(x=>x.uid).join()===['flow-0','flow-2','flow-3','flow-1','flow-4'].join(),'center crossing inserts after the crossed visit');
+ok(flowEvents(ripple.plan)[1].start===initial[1].start,'vacated slot is filled by the next visit');
+ok(ripple.shifted===2&&ripple.position===4,'preview describes affected neighbors and insertion position');
+const earlier=E.retime(flowRegion,flow,1,initial[3].edit.key,'move',initial[1].start-10);
+ok(earlier.plan.items[1].map(x=>x.uid).join()===['flow-0','flow-3','flow-1','flow-2','flow-4'].join(),'moving earlier pushes the intervening visits back');
+ok(earlier.block.start>=initial[0].end+10,'insertion preserves inbound travel space');
+for(const value of [ripple,earlier]){
+ ok(JSON.stringify(value.plan.items[0])===JSON.stringify(flow.items[0])&&JSON.stringify(value.plan.items[2])===JSON.stringify(flow.items[2]),'reflow affects only the edited day');
+ ok(value.plan.transferDeparture===flow.transferDeparture&&value.plan.returnDeparture===flow.returnDeparture,'service targets remain unchanged when moving a visit');
+ ok(flowEvents(value.plan).every(b=>b.start%10===0&&b.end%10===0),'reflow lands on ten-minute cells');
+ ok(value.schedule.days[1].blocks.every((b,i,a)=>!i||b.start>=a[i-1].end),'reflow has no final overlap, including transport');
+ ok(JSON.stringify(flowEvents(E.normalizePlan(flowRegion,value.plan)))===JSON.stringify(flowEvents(value.plan)),'saved reflow exactly matches preview');
+}
+const withLeg=JSON.parse(originalFlow),legKey=E.schedule(flowRegion,withLeg).days[1].blocks.find(b=>b.uid==='travel-flow-2').edit.legKey;
+withLeg.legTiming[legKey]={start:650,duration:20};
+ripple=E.retime(flowRegion,withLeg,1,flowKey,'end',initial[1].end-20);
+ok(ripple.plan.legTiming[legKey].duration===20&&ripple.plan.legTiming[legKey].start==null,'reflow preserves manual travel duration and releases its soft start');
+ok(JSON.stringify(flow)===originalFlow,'repeated previews leave the original untouched');
+const unchanged=E.retime(flowRegion,flow,1,flowKey,'move',initial[1].start);
+ok(JSON.stringify(unchanged.plan)===originalFlow&&unchanged.shifted===0,'returning to the original cell preserves all manually placed times');
+const repeated=E.retime(flowRegion,flow,1,flowKey,'move',initial[3].start);
+ok(JSON.stringify(repeated)===JSON.stringify(E.retime(flowRegion,flow,1,flowKey,'move',initial[3].start)),'preview is deterministic when moving back and forth');
+for(let target=0;target<=1440;target+=10){
+ const value=E.retime(flowRegion,flow,1,flowKey,'move',target);
+ ok(new Set(value.plan.items[1].map(x=>x.uid)).size===5,'repeated reorder never duplicates or loses a visit');
+ ok(value.schedule.days[1].blocks.every((b,i,a)=>!i||b.start>=a[i-1].end),'all drag positions remain chronological');
+}
 console.log(checks+' timeline grid, resize, reorder, persistence and constraint assertions passed.');
