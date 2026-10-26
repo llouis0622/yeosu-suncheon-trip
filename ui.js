@@ -29,12 +29,44 @@ function changeCourse(ci){closeStopEditor();stopPlayback();state.course=courseIn
 function goNational(){setPane('map');stopPlayback();state.region=DATA[0].id;state.selected=null;state.editUid=null;refresh();animateView(fit([E.origin(region()).coord,...region().points.filter(p=>p.type==='transit').map(p=>p.coord)],.15,8),350);}
 function filteredRegions(){return DATA.filter(d=>state.filter==='all'||state.filter==='car'&&d.carAllowed||state.filter==='no-car'&&!d.carAllowed||state.filter==='aquarium'&&d.points.some(p=>p.aquarium)||state.filter==='themepark'&&d.courses.some(c=>c.themePark));}
 function renderRegions(){const list=filteredRegions();$('regionCount').textContent=list.length;$('regions').innerHTML=list.map(d=>`<button class="region-row ${d.id===state.region?'active':''}" data-region="${d.id}" aria-pressed="${d.id===state.region}"><span class="region-no">${String(DATA.indexOf(d)+1).padStart(2,'0')}</span><span><b>${esc(d.name)}</b><small>${d.carAllowed?'자차 가능':'기차·버스 + 현지 택시'} · ${d.courses.length}코스</small></span>${d.points.some(p=>p.aquarium)?'<span class="aquarium-symbol" title="아쿠아리움 후보 있음">◉</span>':''}</button>`).join('');}
-function renderHeader(){const d=region();$('mapTitle').textContent='여수 · 순천';$('mapSubtitle').textContent=d?d.points.filter(p=>p.type!=='transit').length+'곳 · 2박 3일':'';$('homeBtn').hidden=false;$('homeBtn').textContent='부산 포함';$('fitBtn').hidden=false;$('fitBtn').textContent='두 도시';$('mapHelp').textContent='밝게: 내 일정 · 흐리게: 후보 · 화살표는 이동 순서';$('main').dataset.pane=state.pane;$('viewSwitch').hidden=false;for(const p of ['split','map','places','schedule'])$('pane-'+p).setAttribute('aria-pressed',String(state.pane===p));}
+function renderHeader(){const d=region();$('mapTitle').textContent='여수 · 순천';$('mapSubtitle').textContent=d?d.points.filter(p=>p.type!=='transit').length+'곳 · 2박 3일':'';$('homeBtn').hidden=false;$('homeBtn').textContent='부산 포함';$('fitBtn').hidden=false;$('fitBtn').textContent='두 도시';$('mapHelp').textContent='밝게: 내 일정 · 흐리게: 후보 · 화살표는 이동 순서';$('main').dataset.pane=state.pane;$('main').dataset.layout=workspaceLayout();$('viewSwitch').hidden=false;for(const p of ['split','map','places','schedule'])$('pane-'+p).setAttribute('aria-pressed',String(state.pane===p));applyPaneSizes();}
 function renderCourseBar(){const d=region();$('courseBar').hidden=!d;if(!d)return;$('courseBar').innerHTML=`<span class="course-label">추천 코스</span><div class="course-tabs">${d.courses.map((c,i)=>`<button data-course="${i}" class="${i===state.course?'active':''}" aria-pressed="${i===state.course}"><b>${letter(i)}</b><span>${esc(c.name)}</span></button>`).join('')}</div><button class="course-info-button quiet" data-action="course-info" aria-label="선택한 코스 설명과 편집">안내·편집</button>`;}
 function courseInfo(){const c=region().courses[state.course];modal(letter(state.course)+' · '+c.name,`<p class="course-summary">${esc(c.desc)}</p>${c.notes?`<h3>교통·예약 팁</h3><p>${esc(c.notes)}</p>`:''}<div class="course-dialog-actions"><button data-action="reset">추천 일정 복원</button><button data-action="blank">빈 일정으로 시작</button></div>`);}
-const compactWorkspace=()=>matchMedia('(max-width: 1179px)').matches;
+const PHONE_MEDIA='(max-width: 599px), (max-width: 1199px) and (max-height: 599px), (max-width: 759px) and (max-height: 759px)';
+const PORTRAIT_MEDIA='(min-width: 600px) and (min-height: 600px) and (orientation: portrait)';
+const compactWorkspace=()=>matchMedia(PHONE_MEDIA).matches;
+const stackedWorkspace=()=>!compactWorkspace()&&matchMedia(PORTRAIT_MEDIA).matches;
+const workspaceLayout=()=>compactWorkspace()?'phone':stackedWorkspace()?'rows':'columns';
+const DEFAULT_PANE_SIZES=[.5,.25,.25],PANE_STORAGE_KEY=STORAGE_KEY+'-panes';
+let paneSizes={columns:[...DEFAULT_PANE_SIZES],rows:[...DEFAULT_PANE_SIZES]},paneGesture=null;
+try{const stored=JSON.parse(localStorage.getItem(PANE_STORAGE_KEY)||'null');for(const layout of ['columns','rows']){const values=stored?.[layout];if(Array.isArray(values)&&values.length===3&&values.every(n=>Number.isFinite(n)&&n>0)){const total=values.reduce((a,b)=>a+b,0);if(Number.isFinite(total)&&total>0)paneSizes[layout]=values.map(n=>n/total);}}}catch{}
+function paneSpace(layout=workspaceLayout()){const rect=$('main').getBoundingClientRect();return Math.max(1,rect[layout==='rows'?'height':'width']-40);}
+function paneMinimums(space,layout){return(layout==='rows'?[200,140,190]:[220,190,210]).map((pixels,i)=>Math.min(pixels/space,i===0 ? .3 : i===2 ? .25 : .2));}
+function fitPaneSizes(values,space,layout){const minimum=paneMinimums(space,layout),extra=values.map((v,i)=>Math.max(0,v-minimum[i])),sum=extra.reduce((a,b)=>a+b,0),free=1-minimum.reduce((a,b)=>a+b,0);return minimum.map((v,i)=>v+free*(sum?extra[i]/sum:1/3));}
+function applyPaneSizes(values){
+ const layout=workspaceLayout();if(layout==='phone')return;
+ const main=$('main'),space=paneSpace(layout),sizes=fitPaneSizes(values||paneSizes[layout],space,layout),minimum=paneMinimums(space,layout);
+ ['map','places','plan'].forEach((name,i)=>main.style.setProperty('--pane-'+name,sizes[i]+'fr'));
+ main.dataset.paneSizes=sizes.join(',');
+ ['mapDivider','planDivider'].forEach((id,i)=>{const divider=$(id),before=i?sizes[0]:0;divider.setAttribute('aria-orientation',layout==='rows'?'horizontal':'vertical');divider.setAttribute('aria-valuenow',String(Math.round((before+sizes[i])*100)));divider.setAttribute('aria-valuemin',String(Math.ceil((before+minimum[i])*100)));divider.setAttribute('aria-valuemax',String(Math.floor((before+sizes[i]+sizes[i+1]-minimum[i+1])*100)));divider.setAttribute('aria-valuetext','지도 '+Math.round(sizes[0]*100)+'%, 추천 '+Math.round(sizes[1]*100)+'%, 일정 '+Math.round(sizes[2]*100)+'%');});
+ return sizes;
+}
+function savePaneSizes(layout,sizes){paneSizes[layout]=[...sizes];try{localStorage.setItem(PANE_STORAGE_KEY,JSON.stringify(paneSizes));}catch{}}
+function resizePanePair(sizes,index,delta,space,layout){const next=[...sizes],minimum=paneMinimums(space,layout),pair=sizes[index]+sizes[index+1];next[index]=E.clamp(sizes[index]+delta,minimum[index],pair-minimum[index+1]);next[index+1]=pair-next[index];return next;}
+function cancelPaneResize(){const g=paneGesture;if(!g)return;paneGesture=null;if(g.handle.hasPointerCapture?.(g.id))g.handle.releasePointerCapture(g.id);g.handle.removeAttribute('aria-grabbed');delete $('main').dataset.resizing;document.body?.classList.remove('resizing-panes');applyPaneSizes();}
+function onPaneResizeDown(e){
+ if(paneGesture){if(paneGesture.id!==e.pointerId)cancelPaneResize();return;}
+ const handle=e.target.closest('[data-resize-pane]'),layout=workspaceLayout();if(!handle||layout==='phone'||state.pane!=='split'||e.button!==0||e.isPrimary===false)return;
+ cancelTimeline();cancelSort();const sizes=applyPaneSizes(),axis=layout==='rows'?'clientY':'clientX';
+ paneGesture={id:e.pointerId,handle,index:Number(handle.dataset.resizePane),layout,axis,origin:e[axis],space:paneSpace(layout),sizes,preview:sizes,moved:false};
+ try{handle.setPointerCapture(e.pointerId);}catch{}handle.focus({preventScroll:true});e.preventDefault();
+}
+function onPaneResizeMove(e){const g=paneGesture;if(!g||g.id!==e.pointerId)return;const delta=e[g.axis]-g.origin;if(!g.moved&&Math.abs(delta)<3)return;g.moved=true;g.preview=resizePanePair(g.sizes,g.index,delta/g.space,g.space,g.layout);applyPaneSizes(g.preview);$('main').dataset.resizing=g.layout;g.handle.setAttribute('aria-grabbed','true');document.body?.classList.add('resizing-panes');e.preventDefault();}
+function onPaneResizeEnd(e){const g=paneGesture;if(!g||g.id!==e.pointerId)return;if(e.type==='pointerup'&&g.moved){onPaneResizeMove(e);savePaneSizes(g.layout,g.preview);}cancelPaneResize();}
+function resetPaneSizes(){cancelPaneResize();const layout=workspaceLayout();if(layout==='phone')return;savePaneSizes(layout,DEFAULT_PANE_SIZES);applyPaneSizes();toast('지도 50% · 추천 25% · 일정 25%로 되돌렸습니다.');}
+function paneResizeKeyboard(e){const handle=e.target.closest('[data-resize-pane]');if(!handle)return;if(e.key==='Home'){e.preventDefault();resetPaneSizes();return;}const layout=workspaceLayout();if(layout==='phone'||state.pane!=='split')return;const keys=layout==='rows'?['ArrowUp','ArrowDown']:['ArrowLeft','ArrowRight'];if(!keys.includes(e.key))return;e.preventDefault();const delta=(e.key===keys[0]?-1:1)*(e.shiftKey ? .01 : .05),sizes=resizePanePair(applyPaneSizes(),Number(handle.dataset.resizePane),delta,paneSpace(layout),layout);savePaneSizes(layout,sizes);applyPaneSizes();}
 function setPane(pane){
- cancelSort();state.pane=['split','map','places','schedule'].includes(pane)?pane:'map';
+ cancelPaneResize();cancelSort();state.pane=['split','map','places','schedule'].includes(pane)?pane:'map';
  if(compactWorkspace()&&state.pane==='split')state.pane='map';
  state.plannerExpanded=!compactWorkspace()&&state.pane==='schedule';
  $('main').dataset.pane=state.pane;
@@ -47,7 +79,7 @@ function togglePlanner(){
  setPane(state.plannerExpanded?'split':'schedule');
 }
 function syncWorkspace(){
- cancelSort();
+ cancelPaneResize();cancelSort();
  // Keep the chosen pane while adapting its time axis to the available width.
  if(compactWorkspace()&&state.plannerExpanded)state.pane='schedule';
  if(compactWorkspace()&&state.pane==='split')state.pane='map';
@@ -90,7 +122,7 @@ function adjustDuration(uid,delta){const v=findItem(uid);if(!v||!Number.isFinite
 function moveStop(uid,day,index){const v=findItem(uid);if(!v||!Number.isInteger(day)||day<0||day>2||!Number.isFinite(index))return false;const target=plan().items[day];if(v.day!==day&&target.length>=30){toast('옮길 날짜에 이미 30곳이 있습니다.');return false;}index=E.clamp(Math.trunc(index),0,target.length-(day===v.day?1:0));if(v.day===day&&v.index===index)return false;state.day=day;state.editUid=uid;return mutate(p=>{p.items[v.day].splice(v.index,1);p.items[day].splice(index,0,v.item);});}
 function shiftStop(uid,delta){const v=findItem(uid);if(!v)return false;return moveStop(uid,v.day,v.index+delta);}
 function setPlannerView(view){cancelSort();state.plannerView=view==='sequence'?'sequence':'timeline';if(compactWorkspace())setPane('schedule');else renderPlanner();}
-function timelineAxis(){return state.plannerExpanded?{vertical:false,pos:'left',size:'width',scroll:'scrollLeft',viewport:'clientWidth',extent:'scrollWidth',pointer:'clientX',end:'right'}:{vertical:true,pos:'top',size:'height',scroll:'scrollTop',viewport:'clientHeight',extent:'scrollHeight',pointer:'clientY',end:'bottom'};}
+function timelineAxis(){return state.plannerExpanded||stackedWorkspace()?{vertical:false,pos:'left',size:'width',scroll:'scrollLeft',viewport:'clientWidth',extent:'scrollWidth',pointer:'clientX',end:'right'}:{vertical:true,pos:'top',size:'height',scroll:'scrollTop',viewport:'clientHeight',extent:'scrollHeight',pointer:'clientY',end:'bottom'};}
 function timelinePixels(){return 1440*state.timeZoom*(timelineAxis().vertical ? 0.7 : 1);}
 function revealStop(uid){const b=result?.days.flatMap(d=>d.blocks).find(b=>b.uid===uid),scroll=$('timeScroll'),canvas=$('timeCanvas'),a=timelineAxis();if(b&&scroll&&canvas){const size=canvas[a.extent]||timelinePixels();scroll[a.scroll]=Math.max(0,Math.min(b.start,1439)/1440*size-(scroll[a.viewport]||600)*.2);}const rail=$('sequenceScroll');if(state.plannerView==='sequence'&&rail){const card=[...(rail.querySelectorAll?.('[data-sort-item]')||[])].find(x=>x.dataset.sortItem===uid);card?.scrollIntoView({block:'nearest',inline:'nearest',behavior:motion.matches?'auto':'smooth'});}}
 function focusTimeline(){const day=result?.days.find(d=>d.day===state.day),b=day?.blocks.find(b=>b.kind==='visit')||day?.blocks.find(b=>b.start>0),canvas=$('timeCanvas'),scroll=$('timeScroll'),a=timelineAxis();if(!scroll||!canvas)return;scroll[a.scroll]=Math.max(0,((b?.start||480)-30)/1440*(canvas[a.extent]||timelinePixels()));}
@@ -347,6 +379,14 @@ function pickTimelineTime(e){
  const x=e.detail===0?scroll[a.scroll]+scroll[a.viewport]/2:e[a.pointer]-rect[a.pos];
  openPlacePicker(E.clamp(E.snap10(x/rect[a.size]*1440),0,1430));
 }
+document.addEventListener('pointerdown',onPaneResizeDown);
+window.addEventListener('pointermove',onPaneResizeMove,{passive:false});
+window.addEventListener('pointerup',onPaneResizeEnd);
+window.addEventListener('pointercancel',onPaneResizeEnd);
+document.addEventListener('lostpointercapture',e=>{if(paneGesture?.id===e.pointerId)cancelPaneResize();});
+document.addEventListener('dblclick',e=>{if(e.target.closest('[data-resize-pane]'))resetPaneSizes();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')cancelPaneResize();else paneResizeKeyboard(e);});
+window.addEventListener('blur',cancelPaneResize);
 document.addEventListener('pointerdown',onTimelineDown);
 window.addEventListener('pointermove',onTimelineMove,{passive:false});
 window.addEventListener('pointerup',onTimelineEnd);
@@ -429,8 +469,8 @@ restoreSaved();const rect=$('viewport').getBoundingClientRect();state.width=rect
 syncVisibleViewport();
 window.visualViewport?.addEventListener('resize',syncVisibleViewport);
 window.visualViewport?.addEventListener('scroll',syncVisibleViewport);
-window.addEventListener('resize',syncVisibleViewport);
-matchMedia('(max-width: 1179px)').addEventListener('change',syncWorkspace);
+window.addEventListener('resize',()=>{syncVisibleViewport();if(!paneGesture)applyPaneSizes();});
+for(const query of [PHONE_MEDIA,PORTRAIT_MEDIA])matchMedia(query).addEventListener('change',syncWorkspace);
 matchMedia('(max-width: 1199px)').addEventListener('change',()=>{if(!matchMedia('(max-width: 1199px)').matches)closeRegions();});
 window.addEventListener('hashchange',()=>{const [rid,ci]=(location.hash.slice(1)||'').split('/');const d=DATA.find(x=>x.id===rid);if(d){const course=courseIndex(d,ci);if(state.region!==rid||state.course!==course)selectRegion(rid,course,false);}else if(!rid&&region())goNational();});
 

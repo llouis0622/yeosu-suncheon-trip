@@ -4,7 +4,7 @@ const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/st
 const source=fs.readFileSync('ui.js','utf8'),DATA=require('./data.json'),E=require('./engine.js');
 const nodes=new Map(),listeners={},windowListeners={};let checks=0,clock=1000;
 const classList=()=>{const s=new Set();return{add:x=>s.add(x),remove:x=>s.delete(x),contains:x=>s.has(x)}};
-function el(id){if(!nodes.has(id))nodes.set(id,{id,tagName:'DIV',innerHTML:'',textContent:'',value:'',dataset:{},style:{},attrs:{},hidden:false,open:false,scrollLeft:0,scrollTop:0,scrollWidth:1440,clientWidth:600,classList:classList(),children:[],
+function el(id){if(!nodes.has(id))nodes.set(id,{id,tagName:'DIV',innerHTML:'',textContent:'',value:'',dataset:{},style:{setProperty(k,v){this[k]=v}},attrs:{},hidden:false,open:false,scrollLeft:0,scrollTop:0,scrollWidth:1440,clientWidth:600,classList:classList(),children:[],
  setAttribute(k,v){this.attrs[k]=String(v)},removeAttribute(k){delete this.attrs[k]},getBoundingClientRect(){return{left:0,top:0,right:600,bottom:400,width:600,height:400}},addEventListener(){},focus(){doc.activeElement=this},showModal(){this.open=true},close(){this.open=false},closest(){return{scrollIntoView(){}}},querySelectorAll(){return[]},setSelectionRange(){}});return nodes.get(id)}
 const doc={getElementById:el,activeElement:{tagName:'BODY',dataset:{}},addEventListener(type,fn){(listeners[type]??=[]).push(fn)},querySelectorAll(){return[]},hidden:false};
 el('travelData').textContent=JSON.stringify(DATA);el('embeddedPlans').textContent='{}';

@@ -1,11 +1,12 @@
 <!doctype html><html lang="ko"><meta charset="utf-8"><title>여행 시간표 브라우저 검증</title><style>
 body{margin:0;background:#101113;color:#ddd;font:14px system-ui}header{display:flex;gap:8px;align-items:center;padding:12px;position:sticky;top:0;background:#191919;z-index:5;flex-wrap:wrap}button,select{padding:10px;background:#282828;color:#eee;border:1px solid #555}button:disabled{opacity:.4}#result{white-space:pre-wrap;padding:12px;max-height:260px;overflow:auto}iframe{display:block;border:1px solid #555;margin:12px}#result:empty{display:none}.ok{color:#e1d59d}
-</style><header><b>브라우저 검증</b><select id="size"><option>390 × 844</option><option>320 × 568</option><option>360 × 800</option><option>600 × 960</option><option>768 × 1024</option><option>1024 × 768</option><option>1179 × 820</option><option>1180 × 820</option><option>1366 × 900</option><option>1920 × 1080</option><option>740 × 360</option></select><button id="open">화면 열기</button><button id="run">11개 크기 자동 검사</button><span id="status"></span></header><pre id="result"></pre><iframe id="app" title="여행 플래너 테스트 화면"></iframe><script>
-const sizes=[[320,568],[360,800],[390,844],[600,960],[768,1024],[1024,768],[1179,820],[1180,820],[1366,900],[1920,1080],[740,360]],frame=document.querySelector('#app'),output=document.querySelector('#result'),status=document.querySelector('#status'),testKey='yeosu-suncheon-timeline-test';
+</style><header><b>브라우저 검증</b><select id="size"><option>320 × 568</option><option>390 × 844</option><option>844 × 390</option><option>599 × 960</option><option>600 × 600</option><option>600 × 800</option><option>800 × 600</option><option>600 × 960</option><option>960 × 600</option><option>768 × 1024</option><option>1024 × 768</option><option>820 × 1180</option><option>1180 × 820</option><option>1024 × 1366</option><option>1366 × 1024</option><option>1366 × 900</option><option>1920 × 1080</option><option>740 × 360</option></select><button id="open">화면 열기</button><button id="run">18개 크기·회전 검사</button><button id="small">작은 창 추가 검사</button><span id="status"></span></header><pre id="result"></pre><iframe id="app" title="여행 플래너 테스트 화면"></iframe><script>
+const sizes=[[320,568],[390,844],[844,390],[599,960],[600,600],[600,800],[800,600],[600,960],[960,600],[768,1024],[1024,768],[820,1180],[1180,820],[1024,1366],[1366,1024],[1366,900],[1920,1080],[740,360]],frame=document.querySelector('#app'),output=document.querySelector('#result'),status=document.querySelector('#status'),testKey='yeosu-suncheon-timeline-test';
 const appURL=location.pathname.endsWith('/qa.html')?'./index.html':'./dist/index.html';
 const next=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
 let serial=0,checks=0,failures=0;const log=(ok,label)=>{checks++;if(!ok)failures++;output.textContent+=(ok?'✓ ':'✕ ')+label+'\n';output.scrollTop=output.scrollHeight;if(!ok)throw Error(label)};
-async function load(w,h,reset=true){if(reset)localStorage.removeItem(testKey);frame.width=w;frame.height=h;await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error('iframe load timeout')),10000);frame.onload=()=>{clearTimeout(timeout);resolve()};frame.src=appURL+'?timeline-test=1&qa-run='+(++serial)+'#yeosu-suncheon/0'});await next();return frame.contentDocument;}
+async function load(w,h,reset=true){if(reset){localStorage.removeItem(testKey);localStorage.removeItem(testKey+'-panes');}frame.width=w;frame.height=h;await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error('iframe load timeout')),10000);frame.onload=()=>{clearTimeout(timeout);resolve()};frame.src=appURL+'?timeline-test=1&qa-run='+(++serial)+'#yeosu-suncheon/0'});await next();return frame.contentDocument;}
+const phone=(w,h)=>w<600||(w<1200&&h<600)||(w<760&&h<760);
 const click=(doc,sel)=>{const el=doc.querySelector(sel);if(!el)throw Error('missing '+sel);el.click();return el};
 const saved=()=>localStorage.getItem(testKey),current=()=>JSON.parse(saved()||'{}')['yeosu-suncheon:0'];
 function range(el){const text=el.querySelector('.time-block').getAttribute('aria-label'),m=[...text.matchAll(/(\d\d):(\d\d)/g)].map(x=>+x[1]*60 + +x[2]);return m.slice(-2)}
@@ -33,12 +34,17 @@ async function suite(w,h){
  const header=d.querySelector('#appHeader').getBoundingClientRect(),map=d.querySelector('.map-frame').getBoundingClientRect(),candidates=d.querySelector('#candidatePanel').getBoundingClientRect(),initialPlanner=d.querySelector('#planner').getBoundingClientRect();
  log(header.height<=50,'single compact header stays within 50px');
  log(d.querySelector('#viewSwitch').getBoundingClientRect().top<header.bottom,'view tabs sit beside the title');
- log(map.height>=h-header.height-20,'map occupies the full available height');
- if(w>1179){
+ if(!phone(w,h)&&h>=w){
+  log(Math.abs(map.height/candidates.height-2)<.05&&Math.abs(initialPlanner.height/candidates.height-1)<.03,'portrait rows follow 50 / 25 / 25 proportions');
+  log(map.bottom<=candidates.top&&candidates.bottom<=initialPlanner.top&&initialPlanner.bottom<=h,'portrait panes stack within the viewport');
+ }else if(!phone(w,h)){
+  log(map.height>=h-header.height-20,'landscape map occupies the full available height');
   log(Math.abs(map.width/candidates.width-2)<.05&&Math.abs(initialPlanner.width/candidates.width-1)<.03,'desktop columns follow 50 / 25 / 25 proportions');
   log(Math.abs(map.top-candidates.top)<1&&Math.abs(map.top-initialPlanner.top)<1,'map, recommendations and schedule share one top edge');
  }else{
-  log(candidates.width===0&&initialPlanner.width===0,'compact screen starts with map alone');
+  log(candidates.width===0&&initialPlanner.width===0,'phone starts with map alone');
+  log(map.height>=h-header.height-20,'phone map uses the available height');
+  log([...d.querySelectorAll('.pane-divider')].every(el=>!el.getBoundingClientRect().width),'phone hides pane dividers');
   click(d,'#pane-schedule');
  }
  await next();
@@ -46,10 +52,11 @@ async function suite(w,h){
  log(d.documentElement.scrollWidth<=w+1,w+'×'+h+' page has no horizontal overflow');
  log(planner.getBoundingClientRect().right<=w+1&&planner.getBoundingClientRect().left>=0,'planner fits viewport');
  log(main.scrollWidth<=main.clientWidth+1,'main does not spill horizontally');
- const a=axis(d);log(a.pos==='top','side and compact timelines use vertical time');
+ const a=axis(d),rows=!phone(w,h)&&h>=w;log(a.pos===(rows?'left':'top'),'timeline axis follows the pane shape');
  log(d.querySelector('#timeCanvas').getBoundingClientRect()[a.size]/144>=13,'ten-minute cells have usable zoom');
- log(d.querySelector('#timeScroll').scrollWidth<=d.querySelector('#timeScroll').clientWidth+1,'vertical timeline needs no horizontal scrolling');
- log(d.querySelector('#timeScroll').clientHeight>=100,'timeline retains usable height on short screens');
+ if(a.pos==='top')log(d.querySelector('#timeScroll').scrollWidth<=d.querySelector('#timeScroll').clientWidth+1,'vertical timeline needs no horizontal scrolling');
+ else log(d.querySelector('#timeScroll').scrollHeight<=d.querySelector('#timeScroll').clientHeight+1,'portrait horizontal timeline fits its row height');
+ log(d.querySelector('#timeScroll').clientHeight>=(rows?65:100),'timeline retains usable height on short screens');
  const first=d.querySelector('.time-event.visit'),key=first.dataset.timeKey,initial=range(first),count=d.querySelectorAll('.time-event.visit').length;
  const visible=d.querySelector('#timeScroll').getBoundingClientRect(),firstRect=first.getBoundingClientRect();
  log(firstRect[a.pos]<visible[a.end]&&firstRect[a.end]>visible[a.pos],'first visit is visible when opening schedule');
@@ -93,10 +100,10 @@ async function suite(w,h){
  byKey(d,key).querySelector('[data-time-part="move"]').dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:a.pos==='top'?'ArrowDown':'ArrowRight',bubbles:true,cancelable:true}));
  log(range(byKey(d,key))[0]===initial[0]+10,'keyboard moves ten minutes');click(d,'[data-action="undo"]');
  pointer(d,key,'move',20,'touch');log(range(byKey(d,key))[0]===initial[0]+20,'touch body moves block');
- d=await load(w,h,false);if(w<=1179)click(d,'#pane-schedule');await next();
+ d=await load(w,h,false);if(phone(w,h))click(d,'#pane-schedule');await next();
  log(range(byKey(d,key))[0]===initial[0]+20,'reload preserves moved position');
  const leg=d.querySelector('.time-event.travel.editable[data-time-key^="leg:"]'),legkey=leg.dataset.timeKey;
- pointer(d,legkey,'end',20,'touch');const legRange=range(byKey(d,legkey));d=await load(w,h,false);if(w<=1179)click(d,'#pane-schedule');await next();
+ pointer(d,legkey,'end',20,'touch');const legRange=range(byKey(d,legkey));d=await load(w,h,false);if(phone(w,h))click(d,'#pane-schedule');await next();
  log(range(byKey(d,legkey)).join()===legRange.join(),'reload preserves transport edit');
  await new Promise(resolve=>setTimeout(resolve,550));click(d,'[data-time-key="'+legkey+'"] .time-block');click(d,'[data-action="timeline-edit"]');click(d,'[data-action="timeline-auto"]');
  log(!current().legTiming[legkey.replace(/^leg:/,'')],'local travel can return to automatic calculation');
@@ -108,17 +115,70 @@ async function suite(w,h){
  click(d,'[data-action="timeline-edit"]');const dialog=d.querySelector('#dialog').getBoundingClientRect();
  log(dialog.width<=w&&dialog.height<=h,'edit dialog fits viewport');click(d,'#closeDialog');
  log([...d.querySelectorAll('.time-event.visit')].every(el=>range(el).every(n=>n%10===0)),'all visits end on ten-minute cells');
- if(w>1179){
+ if(!phone(w,h)){
   const beforeView=visitSnapshot(d);click(d,'#pane-schedule');await next();
   log(axis(d).pos==='left','focused desktop schedule switches to horizontal time');
   const focused=d.querySelector('.time-event.visit'),focusedKey=focused.dataset.timeKey,focusedRange=range(focused);
   pointer(d,focusedKey,'move',20,'mouse');log(range(byKey(d,focusedKey))[0]===focusedRange[0]+20,'horizontal drag still snaps and moves');
   click(d,'[data-action="undo"]');click(d,'#pane-split');await next();
-  log(axis(d).pos==='top'&&visitSnapshot(d)===beforeView,'returning to all columns preserves edits and vertical layout');
+  log(axis(d).pos===(rows?'left':'top')&&visitSnapshot(d)===beforeView,'returning to split view preserves edits and time axis');
+  await dividerSuite(d,w,h);
  }
- if(w<=1179){click(d,'#pane-map');log(d.querySelector('#viewport').getBoundingClientRect().width>0,'map view remains accessible');click(d,'#pane-places');log(d.querySelector('#candidateList').getBoundingClientRect().height>120,'candidate list remains usable');}
+ if(phone(w,h)){click(d,'#pane-map');log(d.querySelector('#viewport').getBoundingClientRect().width>0,'map view remains accessible');click(d,'#pane-places');log(d.querySelector('#candidateList').getBoundingClientRect().height>120,'candidate list remains usable');}
+}
+function beginDivider(doc,index){
+ const control=doc.querySelectorAll('.pane-divider')[index],rect=control.getBoundingClientRect(),rows=doc.querySelector('#main').dataset.layout==='rows',a={client:rows?'clientY':'clientX',pos:rows?'top':'left',size:rows?'height':'width'},x=rect[a.pos]+rect[a.size]/2,win=doc.defaultView;let pos=x;
+ const send=(name)=>win.dispatchEvent(new win.PointerEvent(name,{pointerId:701,pointerType:'touch',isPrimary:true,button:0,buttons:name==='pointerup'?0:1,...coordinates(rect,a,pos),bubbles:true,cancelable:true}));
+ control.dispatchEvent(new win.PointerEvent('pointerdown',{pointerId:701,pointerType:'touch',isPrimary:true,button:0,buttons:1,...coordinates(rect,a,x),bubbles:true,cancelable:true}));
+ return {control,move(delta){pos=x+delta;send('pointermove')},end(cancel=false){send(cancel?'pointercancel':'pointerup')}};
+}
+const paneRatios=doc=>doc.querySelector('#main').dataset.paneSizes.split(',').map(Number);
+async function dividerSuite(d,w,h){
+ const originalPlan=saved(),initial=paneRatios(d),before=localStorage.getItem(testKey+'-panes'),drag=beginDivider(d,0);drag.move(35);
+ const live=paneRatios(d);log(live[0]>initial[0]&&live[1]<initial[1]&&Math.abs(live[2]-initial[2])<.0001,'first divider resizes only its neighboring panes');
+ log(localStorage.getItem(testKey+'-panes')===before,'pane resize preview is not saved before release');drag.end();
+ log(localStorage.getItem(testKey+'-panes')!==before,'pane ratio saves on release');
+ const committed=localStorage.getItem(testKey+'-panes'),second=beginDivider(d,1);second.move(-30);const middle=paneRatios(d);
+ log(Math.abs(middle[0]-live[0])<.0001&&middle[1]<live[1],'second divider leaves map size unchanged');second.end(true);
+ log(localStorage.getItem(testKey+'-panes')===committed&&paneRatios(d).every((v,i)=>Math.abs(v-live[i])<.0001),'cancel restores the previous pane sizes');
+ d=await load(w,h,false);log(paneRatios(d).every((v,i)=>Math.abs(v-live[i])<.0001),'reload restores the saved pane ratio');
+ const control=d.querySelector('.pane-divider'),rows=d.querySelector('#main').dataset.layout==='rows';
+ control.dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true}));
+ log(paneRatios(d).every((v,i)=>Math.abs(v-[.5,.25,.25][i])<.0001),'Home resets to 50 / 25 / 25');
+ control.dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:rows?'ArrowUp':'ArrowLeft',bubbles:true,cancelable:true}));
+ log(Math.abs(paneRatios(d)[0]-.45)<.0001,'keyboard resizes by five percent');
+ control.dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:rows?'ArrowDown':'ArrowRight',shiftKey:true,bubbles:true,cancelable:true}));
+ log(Math.abs(paneRatios(d)[0]-.46)<.0001,'Shift and arrow resizes by one percent');
+ const extreme=beginDivider(d,1);extreme.move(10000);extreme.end();
+ log(paneRatios(d).every(v=>v>=.1)&&d.documentElement.scrollWidth<=w+1,'extreme drag keeps every pane available and avoids page overflow');
+ const bounds=d.querySelector('#planner').getBoundingClientRect();
+ log([...d.querySelectorAll('.planner-top button')].filter(el=>el.getBoundingClientRect().width).every(el=>el.getBoundingClientRect().right<=bounds.right+1),'planner controls fit even at minimum pane width');
+ if(rows)log(d.querySelector('#timeScroll').clientHeight>=65,'minimum portrait schedule height remains editable');
+ control.dispatchEvent(new d.defaultView.MouseEvent('dblclick',{bubbles:true}));
+ log(paneRatios(d).every((v,i)=>Math.abs(v-[.5,.25,.25][i])<.0001),'double click restores the default ratio');
+ log(saved()===originalPlan,'pane sizing leaves the travel plan unchanged');
+}
+async function rotationSuite(w,h){
+ let d=await load(w,h);click(d,'[data-plan-day="1"]');
+ const visit=d.querySelector('.time-event.visit'),key=visit.dataset.timeKey;pointer(d,key,'move',20,'mouse');
+ const originalPlan=saved(),originalVisits=visitSnapshot(d),drag=beginDivider(d,0);drag.move(30);drag.end();const rows=paneRatios(d);
+ frame.width=h;frame.height=w;await next();await next();
+ log(d.querySelector('#main').dataset.pane==='split'&&d.querySelector('#main').dataset.layout==='columns','tablet rotation keeps all panes in landscape columns');
+ log(axis(d).pos==='top'&&saved()===originalPlan&&visitSnapshot(d)===originalVisits,'rotation preserves the selected day and itinerary edits');
+ log(paneRatios(d).every((v,i)=>Math.abs(v-[.5,.25,.25][i])<.0001),'landscape ratio is independent from portrait ratio');
+ const columnDrag=beginDivider(d,1);columnDrag.move(-25);columnDrag.end();const columns=paneRatios(d);
+ frame.width=w;frame.height=h;await next();await next();
+ log(d.querySelector('#main').dataset.layout==='rows'&&axis(d).pos==='left','rotating back restores stacked panes and horizontal time');
+ log(paneRatios(d).every((v,i)=>Math.abs(v-rows[i])<.0001),'portrait remembers its own resized proportions');
+ const pending=beginDivider(d,0),before=localStorage.getItem(testKey+'-panes');pending.move(20);
+ frame.width=h;frame.height=w;await next();await next();
+ log(!d.body.classList.contains('resizing-panes')&&localStorage.getItem(testKey+'-panes')===before,'rotation cancels an unfinished divider gesture');
+ log(paneRatios(d).every((v,i)=>Math.abs(v-columns[i])<.0001),'landscape remembers its own resized proportions');
+ click(d,'[data-action="undo"]');log(saved()!==originalPlan,'itinerary undo remains usable after repeated rotations');
 }
 document.querySelector('#open').onclick=async()=>{output.textContent='';const[w,h]=document.querySelector('#size').value.split(' × ').map(Number);await load(w,h);status.textContent=w+' × '+h;};
-document.querySelector('#run').onclick=async()=>{const button=document.querySelector('#run');button.disabled=true;checks=failures=0;output.textContent='DOM PointerEvent mouse/touch simulation + real browser layout. Physical device gestures are not covered.\n';try{for(const[w,h]of sizes){status.textContent=w+' × '+h+' 검사 중';await suite(w,h);}}catch(e){output.textContent+='ERROR '+e.stack+'\n';failures++;}finally{button.disabled=false;status.textContent=checks+' checks · '+failures+' failures';output.dataset.checks=checks;output.dataset.failures=failures;localStorage.removeItem(testKey);}};
+async function runSuites(selected=sizes,rotate=true){const button=document.querySelector('#run');button.disabled=true;checks=failures=0;output.textContent='DOM PointerEvent mouse/touch simulation + real browser layout. Physical device gestures are not covered.\n';try{for(const[w,h]of selected){status.textContent=w+' × '+h+' 검사 중';await suite(w,h);}for(const[w,h]of (rotate?[[768,1024],[820,1180],[1024,1366]]:[])){status.textContent=w+' × '+h+' 회전 검사 중';await rotationSuite(w,h);}}catch(e){output.textContent+='ERROR '+e.stack+'\n';failures++;}finally{button.disabled=false;status.textContent=checks+' checks · '+failures+' failures';output.dataset.checks=checks;output.dataset.failures=failures;localStorage.removeItem(testKey);localStorage.removeItem(testKey+'-panes');}};
+document.querySelector('#run').onclick=()=>runSuites();
+document.querySelector('#small').onclick=()=>runSuites([[600,800],[800,600],[600,600],[1366,900]],false);
 document.querySelector('#open').click();
 </script></html>
