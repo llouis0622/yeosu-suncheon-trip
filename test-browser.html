@@ -1,6 +1,6 @@
 <!doctype html><html lang="ko"><meta charset="utf-8"><title>여행 시간표 브라우저 검증</title><style>
 body{margin:0;background:#101113;color:#ddd;font:14px system-ui}header{display:flex;gap:8px;align-items:center;padding:12px;position:sticky;top:0;background:#191919;z-index:5;flex-wrap:wrap}button,select{padding:10px;background:#282828;color:#eee;border:1px solid #555}button:disabled{opacity:.4}#result{white-space:pre-wrap;padding:12px;max-height:260px;overflow:auto}iframe{display:block;border:1px solid #555;margin:12px}#result:empty{display:none}.ok{color:#e1d59d}
-</style><header><b>브라우저 검증</b><select id="size"><option>320 × 568</option><option>390 × 844</option><option>844 × 390</option><option>599 × 960</option><option>600 × 600</option><option>600 × 800</option><option>800 × 600</option><option>600 × 960</option><option>960 × 600</option><option>768 × 1024</option><option>1024 × 768</option><option>820 × 1180</option><option>1180 × 820</option><option>1024 × 1366</option><option>1366 × 1024</option><option>1366 × 900</option><option>1920 × 1080</option><option>740 × 360</option></select><button id="open">화면 열기</button><button id="run">18개 크기·회전 검사</button><button id="small">작은 창 추가 검사</button><span id="status"></span></header><pre id="result"></pre><iframe id="app" title="여행 플래너 테스트 화면"></iframe><script>
+</style><header><b>브라우저 검증</b><select id="size"><option>320 × 568</option><option>390 × 844</option><option>844 × 390</option><option>599 × 960</option><option>600 × 600</option><option>600 × 800</option><option>800 × 600</option><option>600 × 960</option><option>960 × 600</option><option>768 × 1024</option><option>1024 × 768</option><option>820 × 1180</option><option>1180 × 820</option><option>1024 × 1366</option><option>1366 × 1024</option><option>1366 × 900</option><option>1920 × 1080</option><option>740 × 360</option></select><button id="open">화면 열기</button><button id="run">18개 크기·회전 검사</button><button id="small">작은 창 추가 검사</button><button id="panes">분할 비율·새로고침 검사</button><span id="status"></span></header><pre id="result"></pre><iframe id="app" title="여행 플래너 테스트 화면"></iframe><script>
 const sizes=[[320,568],[390,844],[844,390],[599,960],[600,600],[600,800],[800,600],[600,960],[960,600],[768,1024],[1024,768],[820,1180],[1180,820],[1024,1366],[1366,1024],[1366,900],[1920,1080],[740,360]],frame=document.querySelector('#app'),output=document.querySelector('#result'),status=document.querySelector('#status'),testKey='yeosu-suncheon-timeline-test';
 const appURL=location.pathname.endsWith('/qa.html')?'./index.html':'./dist/index.html';
 const next=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
@@ -137,11 +137,13 @@ async function dividerSuite(d,w,h){
  const originalPlan=saved(),initial=paneRatios(d),before=localStorage.getItem(testKey+'-panes'),drag=beginDivider(d,0);drag.move(35);
  const live=paneRatios(d);log(live[0]>initial[0]&&live[1]<initial[1]&&Math.abs(live[2]-initial[2])<.0001,'first divider resizes only its neighboring panes');
  log(localStorage.getItem(testKey+'-panes')===before,'pane resize preview is not saved before release');drag.end();
- log(localStorage.getItem(testKey+'-panes')!==before,'pane ratio saves on release');
+ log(paneRatios(d).every((v,i)=>Math.abs(v-live[i])<.0001)&&localStorage.getItem(testKey+'-panes')===before,'released pane ratio stays in memory without persistent storage');
  const committed=localStorage.getItem(testKey+'-panes'),second=beginDivider(d,1);second.move(-30);const middle=paneRatios(d);
  log(Math.abs(middle[0]-live[0])<.0001&&middle[1]<live[1],'second divider leaves map size unchanged');second.end(true);
  log(localStorage.getItem(testKey+'-panes')===committed&&paneRatios(d).every((v,i)=>Math.abs(v-live[i])<.0001),'cancel restores the previous pane sizes');
- d=await load(w,h,false);log(paneRatios(d).every((v,i)=>Math.abs(v-live[i])<.0001),'reload restores the saved pane ratio');
+ // Legacy saved preferences must not override the new reload default.
+ localStorage.setItem(testKey+'-panes',JSON.stringify({columns:[.6,.2,.2],rows:[.4,.35,.25]}));
+ d=await load(w,h,false);log(paneRatios(d).every((v,i)=>Math.abs(v-[.5,.25,.25][i])<.0001),'reload resets to 50 / 25 / 25 even with legacy stored ratios');
  const control=d.querySelector('.pane-divider'),rows=d.querySelector('#main').dataset.layout==='rows';
  control.dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true}));
  log(paneRatios(d).every((v,i)=>Math.abs(v-[.5,.25,.25][i])<.0001),'Home resets to 50 / 25 / 25');
@@ -177,8 +179,9 @@ async function rotationSuite(w,h){
  click(d,'[data-action="undo"]');log(saved()!==originalPlan,'itinerary undo remains usable after repeated rotations');
 }
 document.querySelector('#open').onclick=async()=>{output.textContent='';const[w,h]=document.querySelector('#size').value.split(' × ').map(Number);await load(w,h);status.textContent=w+' × '+h;};
-async function runSuites(selected=sizes,rotate=true){const button=document.querySelector('#run');button.disabled=true;checks=failures=0;output.textContent='DOM PointerEvent mouse/touch simulation + real browser layout. Physical device gestures are not covered.\n';try{for(const[w,h]of selected){status.textContent=w+' × '+h+' 검사 중';await suite(w,h);}for(const[w,h]of (rotate?[[768,1024],[820,1180],[1024,1366]]:[])){status.textContent=w+' × '+h+' 회전 검사 중';await rotationSuite(w,h);}}catch(e){output.textContent+='ERROR '+e.stack+'\n';failures++;}finally{button.disabled=false;status.textContent=checks+' checks · '+failures+' failures';output.dataset.checks=checks;output.dataset.failures=failures;localStorage.removeItem(testKey);localStorage.removeItem(testKey+'-panes');}};
+async function runSuites(selected=sizes,rotate=true,panesOnly=false){const button=document.querySelector('#run');button.disabled=true;checks=failures=0;output.textContent='DOM PointerEvent mouse/touch simulation + real browser layout. Physical device gestures are not covered.\n';try{for(const[w,h]of selected){status.textContent=w+' × '+h+' 검사 중';if(panesOnly)await dividerSuite(await load(w,h),w,h);else await suite(w,h);}for(const[w,h]of (rotate?[[768,1024],[820,1180],[1024,1366]]:[])){status.textContent=w+' × '+h+' 회전 검사 중';await rotationSuite(w,h);}}catch(e){output.textContent+='ERROR '+e.stack+'\n';failures++;}finally{button.disabled=false;status.textContent=checks+' checks · '+failures+' failures';output.dataset.checks=checks;output.dataset.failures=failures;localStorage.removeItem(testKey);localStorage.removeItem(testKey+'-panes');}};
 document.querySelector('#run').onclick=()=>runSuites();
+document.querySelector('#panes').onclick=()=>runSuites([[1366,900],[768,1024]],true,true);
 document.querySelector('#small').onclick=()=>runSuites([[600,800],[800,600],[600,600],[1366,900]],false);
 document.querySelector('#open').click();
 </script></html>
