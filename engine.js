@@ -1,199 +1,112 @@
-/* Planning engine. Recorded directional routes and published services take priority. */
-(function(root){
+/* One agreed itinerary. Only meal, café and lodging choices are persisted. */
+(function (root) {
 'use strict';
-const ORIGIN={id:'busan',name:'부산서부버스터미널(사상)',type:'transit',coord:[128.9859,35.1626]};
-const clamp=(n,a,b)=>Math.min(b,Math.max(a,n)),round5=n=>Math.ceil(n/5)*5;
-const finite=(v,f)=>Number.isFinite(Number(v))&&v!==null&&v!==''?Number(v):f;
-function origin(r,back=false){return{...ORIGIN,...(back?r.transport?.return?.busanHub:r.transport?.busanHub),id:'busan'};}
-function km(a,b){const rad=Math.PI/180,p1=a.coord[1]*rad,p2=b.coord[1]*rad,dp=p2-p1,dl=(b.coord[0]-a.coord[0])*rad;return 6371*2*Math.asin(Math.sqrt(Math.sin(dp/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2));}
-function travel(r,a,b,mode='taxi',override){
- if(!a||!b||a.id===b.id)return{minutes:0,low:0,high:0,mode,note:'같은 장소'};
- if(mode==='mixed'){const dist=km(a,b);mode=dist<0.85?'walk':dist<4.5?'transit':'taxi';}
- if(mode==='car'&&!r.carAllowed)mode='taxi';
- if(Number.isFinite(override)){const n=clamp(Math.round(override),0,600);return{minutes:n,low:n,high:n,mode,note:'직접 입력한 이동시간',manual:true};}
- if(a.complex&&a.complex===b.complex)return{minutes:10,low:5,high:20,mode:'walk',estimate:true,onsite:true,note:'같은 시설·단지 내부 이동입니다. 주차 후 도보10분을 확보한 계획값이며, 실내 출입구·동선은 현장에서 확인하세요.'};
- const known=(r.transferOverrides||[]).find(x=>x.from===a.id&&x.to===b.id&&x.mode===mode);
- const routeMode=mode==='car'||mode==='taxi'?'road':mode;
- const rec=r.routes?.[a.id+'>'+b.id+':'+routeMode],intercity=a.id==='busan'||b.id==='busan';
- const routeA=routeMode==='road'&&a.roadCoord?{coord:a.roadCoord}:a,routeB=routeMode==='road'&&b.roadCoord?{coord:b.roadCoord}:b,access=routeMode==='road'?(a.roadAccessMinutes||0)+(b.roadAccessMinutes||0):0;
- if(rec?.status==='ok'&&rec.seconds>=0&&(!rec.fromCoord||km(routeA,{coord:rec.fromCoord})<.03)&&(!rec.toCoord||km(routeB,{coord:rec.toCoord})<.03)){
-  const raw=Math.ceil(rec.seconds/60),buffer=mode==='car'?10:mode==='taxi'?8:mode==='transit'?10:0,traffic=intercity?Math.max(20,round5(raw*.2)):0,n=round5(Math.max(5,raw)+buffer+traffic+access);
-  return{minutes:n,low:raw+buffer+access,high:n+round5(Math.max(5,raw*.2)),rawMinutes:raw,bufferMinutes:buffer+traffic+access,meters:rec.meters,mode,verified:true,checkedAt:rec.checkedAt,sourceUrl:rec.sourceUrl,note:'카카오 '+(routeMode==='road'?'자동차 경로':mode==='walk'?'도보 경로':'대중교통 경로')+' 조회 '+raw+'분 + '+(buffer+traffic)+'분 '+(intercity?'도로 지연·승하차':'승하차·대기')+' 여유.'+(access?' 차량 하차점↔시설 도보 '+access+'분 추가(계획값).':'')+' 조회 시점 결과이며 여행일 평균·실시간 보장은 아닙니다.'};
+const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+const round10 = n => Math.ceil(n / 10) * 10;
+const ORIGIN = {id:'busan', name:'부산 대연동 출발', type:'origin', city:'부산', coord:[129.091,35.137]};
+const origin = r => r.points.find(p => p.id === 'busan') || ORIGIN;
+const dates = ['2026-11-28','2026-11-29','2026-11-30'];
+const date = d => ['11.28 토','11.29 일','11.30 월'][d];
+function time(n) { const m = Math.round(n) % 1440; return (n >= 1440 ? '익일 ' : '') + String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0'); }
+function km(a,b) { const rad=Math.PI/180, p=a.coord[1]*rad, q=b.coord[1]*rad; return 6371*2*Math.asin(Math.sqrt(Math.sin((q-p)/2)**2+Math.cos(p)*Math.cos(q)*Math.sin((b.coord[0]-a.coord[0])*rad/2)**2)); }
+function isClosed(q, day) { const h=q?.hours||{}; return (h.closedDays||[]).includes([6,0,1][day]) || (h.closedDates||[]).includes(dates[day]); }
+function travel(r,a,b,mode='car') {
+ if (!a || !b || a.id===b.id) return {minutes:0,mode,note:'같은 장소'};
+ const key=a.id+'>'+b.id, preset=r.driveEstimates?.[key];
+ if (preset) return {minutes:preset.minutes, mode:preset.mode||mode, estimate:true, note:preset.note||'주차·승하차 여유를 포함한 계획용 추정입니다. 실시간 경로가 아닙니다.'};
+ const intercity=a.city==='부산'||b.city==='부산';
+ if (intercity) return {minutes: a.city===b.city?30:190,mode:'car',estimate:true,note:'도시 간 자차 이동 계획치입니다. 휴게소·정체에 따라 달라집니다.'};
+ if (a.city!==b.city) return {minutes:60,mode:'car',estimate:true,note:'순천↔여수 자차 이동 약 50~70분을 반영한 계획치입니다.'};
+ if (a.complex && a.complex===b.complex) return {minutes:10,mode:'walk',estimate:true,note:'같은 엑스포 권역 안에서 도보 이동 10분을 잡았습니다. 차량을 두고 관람하는 계획입니다.'};
+ const distance=km(a,b), routeMode=mode==='walk'?'walk':'road', rec=r.routes?.[key+':'+routeMode];
+ if(rec?.status==='ok' && (!rec.fromCoord || km(a,{coord:rec.fromCoord})<.05) && (!rec.toCoord || km(b,{coord:rec.toCoord})<.05)) {
+  const access=(a.roadAccessMinutes||0)+(b.roadAccessMinutes||0), raw=Math.ceil(rec.seconds/60);
+  return {minutes:round10(raw+(mode==='walk'?0:10)+access),mode,verified:true,checkedAt:rec.checkedAt,sourceUrl:rec.sourceUrl,note:'기존 카카오 경로 조회 '+raw+'분에 주차·승하차·출입구 이동 여유를 더한 계획치입니다. 실시간 교통이 아닙니다.'};
  }
- if(known&&Number.isFinite(known.minutes))return{minutes:known.minutes,low:round5(known.minutes*.85),high:round5(known.minutes*1.2),mode,note:known.note||'별도 조사한 구간의 계획 이동시간',sourceUrl:known.sourceUrl,recorded:true};
- const distance=km(routeA,routeB),urban=['seoul','daejeon','suwon','sejong','changwon','ulsan','gimhae'].includes(r.id);
- let base, note;
- if(intercity&&r.carAllowed){
-  const hub=r.points.find(x=>x.id===r.transport?.hubId)||{coord:r.center},reference=Math.max(10,km(origin(r),hub)),baseline=(b.id==='busan'?r.return:r.arrival).minutes;
-  base=baseline*clamp(distance/reference,.35,2)+Math.max(20,baseline*.2)+10;
-  note='부산역↔지역 도심 대표시간을 실제 방문지 거리로 보정하고 도로 지연·주차 여유를 더한 계획치. 해당 구간 길찾기 조회 전입니다.';
- }else{
-  const road=distance*(urban?1.4:1.6);
-  base=mode==='walk'?road/4*60:mode==='transit'?road/(urban?19:22)*60+(distance<1?10:25):road/(distance>25?45:urban?25:30)*60+(mode==='car'?10:8);
-  note=mode==='transit'?'이 구간 대중교통 노선은 미조회입니다. 거리·대기 추정으로 실제 환승·배차에 따라 크게 달라질 수 있습니다.':'이 구간 길찾기는 미조회입니다. 좌표 거리·우회·승하차 여유를 반영한 임시 계획치입니다.';
- }
- const failed=r.routeFailures?.[a.id+'>'+b.id+':'+routeMode];if(failed)note=(failed==='NO_RESULTS'?'지도 조회에서 이용 가능한 경로를 찾지 못했습니다. 배차·운영 여부를 직접 확인하세요. ':'지도 조회가 완료되지 않은 구간입니다. ')+note.replace('이 구간 대중교통 노선은 미조회입니다. ','').replace('이 구간 길찾기는 미조회입니다. ','');
- const mid=round5(Math.max(mode==='walk'?5:10,base)+access);
- return{minutes:mid,low:round5(mid*.8),high:round5(mid*1.35),mode,note,estimate:true};
+ if(distance<.65 && !a.hill && !b.hill) return {minutes:round10(Math.max(10,distance*1.35/4*60)),mode:'walk',estimate:true,note:'가까운 두 장소를 도보로 연결한 거리 기반 추정입니다.'};
+ return {minutes:round10(Math.max(10,distance*1.6/(distance>15?45:30)*60+10+(a.roadAccessMinutes||0)+(b.roadAccessMinutes||0))),mode:'car',estimate:true,note:'좌표 거리·도로 우회·주차 여유를 반영한 추정입니다. 실제 도로 경로는 길찾기에서 확인할 수 있습니다.'};
 }
-function createPlan(r,index=0){
- index=clamp(Math.trunc(finite(index,0)),0,r.courses.length-1);
- const c=r.courses[index];
- return {version:3,region:r.id,baseCourse:index,name:c.name,hotel:c.hotel||r.points.find(x=>x.type==='hotel').id,friday:false,departFriday:1140,departSaturday:450,busanAccess:30,starts:[540,540,540],mode:'mixed',transferDeparture:1200,transferMode:'rail',returnDeparture:870,arrivalRide:147,transferRide:25,returnRide:158,delayBuffer:30,hotelBudget:300000,luggage:false,extra:0,legTiming:{},hotelStarts:[null,null],items:c.days.map((ids,d)=>ids.map((id,i)=>({uid:r.id+'-'+index+'-'+d+'-'+i,poi:id,duration:Math.max(10,Math.floor((c.durations?.[id]||r.points.find(x=>x.id===id)?.visitMin||60)/10)*10),start:c.startTimes?.[id]??null,mode:c.modes?.[id]||null,travel:null})))};
-}
-function normalizePlan(r,input){
- if(!input||!Array.isArray(input.items)||input.items.length!==3)throw Error('3일 일정 형식이 아닙니다.');
- const p=createPlan(r,input.baseCourse), modes=['mixed','walk','taxi','transit'];
- p.luggage=Boolean(input.luggage);p.edited=Boolean(input.edited);p.name=String(input.name||p.name).slice(0,80);
- p.hotel=r.points.some(x=>x.id===input.hotel&&x.type==='hotel')?input.hotel:p.hotel;
- for(const [field,min,max] of [['departSaturday',240,1080],['transferDeparture',960,1380],['returnDeparture',720,1200],['busanAccess',0,180],['arrivalRide',60,360],['transferRide',10,180],['returnRide',60,360],['delayBuffer',0,120],['hotelBudget',0,3000000],['extra',0,10000000]])p[field]=clamp(finite(input[field],p[field]),min,max);
- p.transferMode=input.transferMode==='bus'?'bus':'rail';p.mode=modes.includes(input.mode)?input.mode:p.mode;
- p.starts=[0,1,2].map(i=>clamp(finite(input.starts?.[i],p.starts[i]),300,1320));
- p.hotelStarts=[0,1].map(i=>input.hotelStarts?.[i]==null?null:clamp(finite(input.hotelStarts[i],0),0,1430));
- p.legTiming={};for(const [k,v] of Object.entries(input.legTiming||{}).slice(0,200)){if(/^[012]:[a-zA-Z0-9_>:.-]{1,160}$/.test(k)&&v&&typeof v==='object')p.legTiming[k]={start:v.start==null?null:clamp(finite(v.start,0),0,1430),duration:v.duration==null?null:clamp(finite(v.duration,10),10,600)};}
- const usedUids=new Set();
- p.items=input.items.map((items,d)=>{if(!Array.isArray(items))throw Error('일자별 장소 배열이 필요합니다.');return items.slice(0,30).filter(x=>x&&r.points.some(v=>v.id===x.poi&&!['hotel','transit'].includes(v.type))).map((x,i)=>{let uid=String(x.uid||'');if(!/^[a-zA-Z0-9_.-]{1,120}$/.test(uid)||usedUids.has(uid))uid=r.id+'-saved-'+d+'-'+i;while(usedUids.has(uid))uid+='x';usedUids.add(uid);return{uid,poi:x.poi,duration:Math.max(10,Math.floor(clamp(finite(x.duration,60),10,720)/10)*10),start:x.start==null?null:clamp(finite(x.start,0),0,1439),mode:modes.includes(x.mode)?x.mode:null,travel:x.travel==null?null:clamp(finite(x.travel,0),0,600)};});});
+function slots(r) { return r.itinerary.days.flatMap((d,day)=>d.filter(x=>x.kind==='slot').map(x=>({...x,day}))); }
+function eligible(r,slotId,p) { const s=slots(r).find(x=>x.id===slotId); return Boolean(s&&p&&p.city===s.city&&(s.types.includes(p.type)||s.allow?.includes(p.id))&&!p.fixedOnly); }
+function createPlan(r) { return {version:4,region:r.id,hotel:r.itinerary.defaultHotel,choices:Object.fromEntries(slots(r).map(s=>[s.id,null])),mode:'car'}; }
+function normalizePlan(r,input) {
+ if(!input || input.version!==4 || input.region!==r.id || !input.choices || typeof input.choices!=='object' || Array.isArray(input.choices)) throw Error('이 확정 일정의 선택 정보가 아닙니다.');
+ const p=createPlan(r);
+ if(r.points.some(x=>x.id===input.hotel&&x.type==='hotel'&&x.city==='여수')) p.hotel=input.hotel;
+ for(const s of slots(r)) { const q=r.points.find(x=>x.id===input.choices[s.id]); if(eligible(r,s.id,q)) p.choices[s.id]=q.id; }
  return p;
 }
-function isClosed(q,day){const h=q.hours||{},dateISO=['2026-11-28','2026-11-29','2026-11-30'][day];return(h.closedDays||[]).includes([6,0,1][day])||(h.closedDates||[]).includes(dateISO);}
-function schedule(r,p){
- const lookup=id=>id==='busan'?origin(r):r.points.find(x=>x.id===id),hotel=lookup(p.hotel);
- if(!hotel)throw Error('숙소 후보를 선택해 주세요.');
- const out={days:[],warnings:[],steps:[],edges:[],hotel,cost:0,costParts:{hotel:p.hotelBudget,intercity:r.intercityCost||120000,local:0,food:0,tickets:0,extra:p.extra||0},returnMinute:0,returnHub:origin(r,true).name,routeCoverage:{verified:0,estimate:0,manual:0,onsite:0},unconfirmedService:true};
- const busan=origin(r),ysHub=lookup('ys_hub'),scHub=lookup('sc_hub'),ysStation=lookup('ys_station'),scStation=lookup('sc_station');
- const ticketSeen=new Set();
- function warn(d,text){d.warnings.push(text);out.warnings.push(text);}
- function add(d,kind,start,end,point,title,extra={}){const b={kind,start,end,poi:point?.id,title:title||point?.name,...extra};d.blocks.push(b);if(point&&kind!=='wait')out.steps.push({day:d.day,poi:point.id,start,end,uid:extra.uid,kind});return b;}
- function leg(d,a,b,t,mode=p.mode,override,uid){const editKey=d.day+':'+a.id+'>'+b.id+(uid?':'+uid:''),custom=p.legTiming?.[editKey];if(custom?.start>t){add(d,'wait',t,custom.start,null,'이동 시작까지 여유');t=custom.start;}const v=travel(r,a,b,mode,custom?.duration??override);if(v.minutes){add(d,'travel',t,t+v.minutes,b,a.name+' → '+b.name,{...v,from:a.id,to:b.id,uid:uid?'travel-'+uid:undefined,edit:{key:'leg:'+editKey,type:'leg',legKey:editKey}});out.edges.push({from:a.id,to:b.id,day:d.day,mode:v.mode,minutes:v.minutes});d.travelMin+=v.minutes;out.routeCoverage[v.onsite?'onsite':v.verified?'verified':v.manual?'manual':'estimate']++;if(v.mode==='taxi')out.costParts.local+=Math.max(5000,Math.ceil((3500+(v.meters?v.meters/1000:km(a,b)*1.6)*1500)/1000)*1000);else if(v.mode==='transit')out.costParts.local+=5000;}return t+v.minutes;}
- function service(d,a,b,ready,target,ride,mode,buffer,label){
-  const which=a.id==='busan'?'outbound':b.id==='busan'?'return':'transfer',fields={outbound:['departSaturday','arrivalRide',240,1080,60,360],transfer:['transferDeparture','transferRide',960,1380,10,180],return:['returnDeparture','returnRide',720,1200,60,360]}[which];
-  let depart=Math.max(target,ready+20);
-  if(ready+20>target)warn(d,label+': 승차 준비 포함 도착 '+time(ready+20)+'가 목표 출발 '+time(target)+'보다 늦습니다. 장소를 줄이거나 실제 후속편으로 시각을 바꿔주세요.');
-  add(d,'wait',ready,depart,null,'승차 준비 20분 · 출발 전 여유');
-  add(d,'travel',depart,depart+ride,b,a.name+' → '+b.name,{minutes:ride,low:ride,high:ride+buffer,mode,from:a.id,to:b.id,note:label+' · 계획 출발 '+time(depart)+'. 여행일 확정 배차가 아닌 편집 가능한 참고 시간입니다. 지연 여유 '+buffer+'분은 다음 블록에 별도 반영됩니다.',sourceUrl:mode==='rail'?'https://www.korail.com/':a.id==='busan'?'https://www.kobus.co.kr/':'https://txbus.t-money.co.kr/',scheduled:false,edit:{key:'service:'+which,type:'service',fields}});
-  out.edges.push({from:a.id,to:b.id,day:d.day,mode,minutes:ride});d.travelMin+=ride;
-  if(buffer)add(d,'wait',depart+ride,depart+ride+buffer,null,'이동 지연 여유 '+buffer+'분');
-  return depart+ride+buffer;
+function schedule(r,input) {
+ const p=normalizePlan(r,input), lookup=id=>r.points.find(x=>x.id===id), hotel=lookup(p.hotel);
+ const out={days:[],steps:[],edges:[],warnings:[],hotel:p.hotel,transferDeparture:null,returnDeparture:null,returnMinute:null};
+ function warn(d,text) { d.warnings.push(text); out.warnings.push(text); }
+ function add(d,kind,start,end,point,title,extra={}) {
+  if(end<start) throw Error('음수 일정 시간');
+  const b={kind,start,end,poi:point?.id,title:title||point?.name,...extra}; d.blocks.push(b);
+  if(point && kind!=='travel' && kind!=='wait') out.steps.push({day:d.day,poi:point.id,start,end,kind,uid:extra.uid});
+  return b;
  }
- for(let day=0;day<3;day++){
-  const d={day,blocks:[],warnings:[],travelMin:0,visitMin:0};out.days.push(d);
-  let t,prev;
-  if(day===0){
-   const ready=Math.max(0,p.departSaturday-20),start=Math.max(0,ready-p.busanAccess);
-   add(d,'origin',start,ready,busan,'사상터미널까지 이동 · '+p.busanAccess+'분');
-   t=service(d,busan,ysHub,ready,p.departSaturday,p.arrivalRide,'bus',p.delayBuffer,'부산 → 여수 첫차 참고안');prev=ysHub;if(p.luggage){add(d,'wait',t,t+15,null,'여수터미널 짐 보관');t+=15;}
-  }else{
-   t=p.starts[day];prev=hotel;add(d,'hotel',0,t,hotel,day===2?'숙박 · 조식 · 체크아웃 준비':'숙박 · 조식',{edit:{key:'morning:'+day,type:'morning',day,parts:['end']}});
-   if(day===2){add(d,'hotel',t,t+20,hotel,'체크아웃 · 짐 보관 또는 휴대');t+=20;if(t>(hotel.checkOutMin||660))warn(d,'체크아웃이 '+time(t)+'입니다. 숙소 퇴실 시각을 확인하세요.');}
-  }
-  for(const item of p.items[day]){
-   const q=lookup(item.poi);if(!q)continue;
-   t=leg(d,prev,q,t,item.mode||p.mode,item.travel,item.uid);
-   if(item.start!=null){if(item.start>t){add(d,'wait',t,item.start,null,'희망 시작 시각까지 여유');t=item.start;}else if(item.start<t)warn(d,q.name+': 희망 시작 '+time(item.start)+'보다 도착 '+time(t)+'가 늦습니다.');}
-   const h={...(q.hours||{}),...(q.hours?.byDay?.[[6,0,1][day]]||{})};
-   if(isClosed(q,day))warn(d,q.name+': '+date(day)+' 휴무와 겹칩니다. 다른 날짜 또는 장소를 선택하세요.');
-   if(q.city!==(day===0?'여수':'순천'))warn(d,q.name+': '+date(day)+'의 기본 도시와 다릅니다. 도시 간 추가 이동을 확인하세요.');
-   if(Number.isFinite(h.open)&&t<h.open){if(item.start==null){add(d,'wait',t,h.open,null,q.name+' 개장 대기');t=h.open;}else warn(d,q.name+': 지정한 시간이 개장 '+time(h.open)+' 이전입니다.');}
-   const duration=Math.max(10,Math.floor(clamp(finite(item.duration,q.visitMin||60),10,720)/10)*10);
-   for(const [start,end] of h.breaks||[])if(t<end&&t+duration>start){if(item.start==null){add(d,'wait',t,end,null,q.name+' 준비시간 이후 방문');t=end;}else warn(d,q.name+': 준비시간 '+time(start)+'–'+time(end)+'와 겹칩니다.');}
-   const aligned=Math.ceil(t/10)*10;if(aligned>t){add(d,'wait',t,aligned,null,'10분 칸에 맞춘 여유');t=aligned;}
-   if(Number.isFinite(h.lastEntry)&&t>h.lastEntry)warn(d,q.name+': 입장마감 '+time(h.lastEntry)+' 이후 도착입니다.');
-   add(d,'visit',t,t+duration,q,null,{uid:item.uid,duration,edit:{key:'visit:'+item.uid,type:'visit',uid:item.uid,day}});d.visitMin+=duration;
-   if(Number.isFinite(h.close)&&t+duration>h.close)warn(d,q.name+': 계획 종료 '+time(t+duration)+'가 마감 '+time(h.close)+'보다 늦습니다.');
-   if(q.type==='food'||q.type==='cafe')out.costParts.food+=(q.cost??(q.type==='food'?18000:8000))*2;
-   else {const ticket=q.ticketGroup?day+':'+q.ticketGroup:null;if(!ticket||!ticketSeen.has(ticket)){out.costParts.tickets+=(q.cost||0)*2;if(ticket)ticketSeen.add(ticket);}}
-   t+=duration;prev=q;
-  }
-  if(day===0){
-   const rail=p.transferMode==='rail',from=rail?ysStation:ysHub,to=rail?scStation:scHub;
-   if(p.luggage){t=leg(d,prev,ysHub,t,p.mode==='mixed'?'taxi':p.mode);add(d,'wait',t,t+15,null,'여수터미널 맡긴 짐 찾기');t+=15;prev=ysHub;if(t>1260)warn(d,'짐 보관소 안내 종료 21:00 이후 회수입니다. 운영시간을 확인하세요.');}t=leg(d,prev,from,t,p.mode==='mixed'?'taxi':p.mode);t=service(d,from,to,t,p.transferDeparture,p.transferRide,p.transferMode,10,'여수 → 순천 저녁 이동');t=leg(d,to,hotel,t);
-   out.transferArrival=t;
-  }else if(day===2){
-   t=leg(d,prev,scHub,t);t=service(d,scHub,busan,t,p.returnDeparture,p.returnRide,'bus',p.delayBuffer,'순천 → 부산 귀환');
-   add(d,'origin',t,t+10,busan,'부산 사상 도착');out.returnMinute=t;
-   if(t>1080)warn(d,'부산 도착 '+time(t)+' — 18:00 목표보다 '+(t-1080)+'분 늦습니다.');
-   else if(t>1050)warn(d,'부산 도착 '+time(t)+' — 18시까지 여유가 30분 미만입니다.');
-  }else t=leg(d,prev,hotel,t);
-  if(day<2){const checkin=Math.max(t,day===0?(hotel.checkInMin||900):0,p.hotelStarts?.[day]||0);if(checkin>t)add(d,'wait',t,checkin,null,'체크인 전 여유');add(d,'hotel',checkin,Math.max(1440,checkin+15),hotel,'순천 · 같은 객실에서 '+(day===0?'첫째':'둘째')+' 밤',{edit:{key:'night:'+day,type:'night',day,parts:['start']}});if(checkin>1320)warn(d,'숙소 도착 '+time(checkin)+'입니다. 늦은 체크인 가능 여부를 확인하세요.');}
-  if(t>1440)warn(d,date(day)+' 일정이 자정을 넘습니다. 장소 수·체류시간을 줄여주세요.');
+ function leg(d,a,b,t) {
+  if(!a||!b||a.id===b.id) return t;
+  const v=travel(r,a,b);
+  add(d,'travel',t,t+v.minutes,b,a.name+' → '+b.name,{...v,from:a.id,to:b.id});
+  out.edges.push({from:a.id,to:b.id,day:d.day,mode:v.mode,minutes:v.minutes});d.travelMin+=v.minutes;
+  return t+v.minutes;
  }
- const meals=p.items.flat().filter(x=>lookup(x.poi)?.type==='food').length;
- out.costParts.food+=Math.max(0,7-meals)*36000;
- out.cost=Object.values(out.costParts).reduce((a,b)=>a+b,0);
- if(out.cost>1200000)out.warnings.push('2인 계획예산이 120만원을 넘습니다. 숙소 예산과 이동·입장료를 조정하세요.');
- if(hotel.room?.bathStatus!=='confirmed')out.warnings.push('선택한 숙소는 예약할 객실의 욕조·스파 조건 확인이 필요합니다.');
- out.hoursUnconfirmed=[...new Set(out.steps.filter(x=>x.kind==='visit').map(x=>lookup(x.poi)).filter(q=>!Number.isFinite(q.hours?.open)||!Number.isFinite(q.hours?.close)).map(q=>q.name))];
+ function visit(d,q,t,minutes,title,extra={}) {
+  if(q) {
+   const h={...(q.hours||{}),...(q.hours?.byDay?.[[6,0,1][d.day]]||{})};
+   if(isClosed(q,d.day)) warn(d,q.name+': '+date(d.day)+' 휴무 안내가 있습니다.');
+   if(Number.isFinite(h.open)&&t<h.open) { add(d,'wait',t,h.open,null,q.name+' 개장 대기');t=h.open; }
+   for(const [a,b] of h.breaks||[]) if(t<b&&t+minutes>a) { add(d,'wait',t,b,null,q.name+' 준비시간 이후 방문');t=b; }
+   if(Number.isFinite(h.lastEntry)&&t>=h.lastEntry) warn(d,q.name+': 입장마감 '+time(h.lastEntry)+'에 도착하거나 그 이후입니다.');
+   if(Number.isFinite(h.close)&&t+minutes>h.close) warn(d,q.name+': 종료 예상 '+time(t+minutes)+'가 안내 마감 '+time(h.close)+' 이후입니다.');
+  }
+  add(d,q?'visit':'placeholder',t,t+minutes,q,title,{duration:minutes,...extra});d.visitMin+=minutes;return t+minutes;
+ }
+ for(let day=0;day<3;day++) {
+  const d={day,blocks:[],warnings:[],travelMin:0,visitMin:0,unselected:[]};out.days.push(d);
+  let prev=day===0?origin(r):hotel, t=day===0?450:510;
+  if(day===0) add(d,'origin',450,450,prev,'대연동 출발 · 07:30');
+  else {
+   const breakfast=lookup(p.choices['d'+day+'-breakfast']), drive=breakfast?travel(r,hotel,breakfast).minutes:0;
+   t=Math.max(0,510-drive); add(d,'hotel',0,t,hotel,'여수 숙박 · 아침 준비');
+  }
+  for(const item of r.itinerary.days[day]) {
+   if(item.kind==='pickup') {
+    const q=lookup(item.poi);t=leg(d,prev,q,t);add(d,'origin',t,t,q,'민지 픽업 · 순천으로 출발');prev=q;continue;
+   }
+   if(item.kind==='checkout') {
+    t=leg(d,prev,hotel,t);add(d,'hotel',t,t+item.duration,hotel,'체크아웃 · 짐 싣기');t+=item.duration;prev=hotel;continue;
+   }
+   if(item.kind==='hotel') {
+    if(day===0) {out.transferDeparture=t;if(t>1050)warn(d,'순천 출발 '+time(t)+' · 17시 전후 목표보다 늦어집니다.');}
+    t=leg(d,prev,hotel,t);
+    if(day===0) out.checkinMinute=t;
+    add(d,'hotel',t,t+item.duration,hotel,item.title,{duration:item.duration});t+=item.duration;prev=hotel;continue;
+   }
+   const q=item.kind==='slot'?lookup(p.choices[item.id]):lookup(item.poi);
+   if(q) {t=leg(d,prev,q,t);prev=q;}
+   if(Number.isFinite(item.notBefore)&&t<item.notBefore) {add(d,'wait',t,item.notBefore,null,item.title+' 전 여유');t=item.notBefore;}
+   if(item.kind==='slot'&&!q)d.unselected.push(item.id);
+   t=visit(d,q,t,item.duration,q?.name||item.title+' · 장소 미선택',{uid:item.id,slotId:item.kind==='slot'?item.id:null,fixed:item.kind!=='slot',slotTitle:item.title});
+  }
+  if(day<2) {
+   t=leg(d,prev,hotel,t);d.finish=t;add(d,'hotel',t,Math.max(1440,t),hotel,'숙소 · 휴식과 가볍게 한잔');
+  } else {
+   if(t<810) {add(d,'wait',t,810,null,'부산 출발 전 여유');t=810;}
+   out.returnDeparture=t;
+   if(t>810)warn(d,'여수 출발 '+time(t)+' · 13:30 목표보다 '+(t-810)+'분 늦습니다.');
+   const pickup=lookup('busan_pickup');t=leg(d,prev,pickup,t);out.pickupReturnMinute=t;
+   add(d,'origin',t,t,pickup,'당감동 도착');t=leg(d,pickup,origin(r),t);
+   add(d,'origin',t,t,origin(r),'대연동 도착');out.returnMinute=t;d.finish=t;
+   if(t>1080)warn(d,'대연동 도착 '+time(t)+' · 18시 목표보다 '+(t-1080)+'분 늦습니다.');
+  }
+  if(d.finish>1440)warn(d,date(day)+' 일정이 자정을 넘습니다. 선택한 장소의 동선을 확인하세요.');
+ }
+ out.unselected=out.days.flatMap(d=>d.unselected);
  return out;
 }
-
-function time(n){const next=n>=1440?'익일 ':'';const m=((Math.round(n)%1440)+1440)%1440;return next+String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');}
-function date(d){return ['11.28 토','11.29 일','11.30 월'][d]||'11.27 금';}
-// Pure ten-minute timeline editing: preview and commit use exactly the same result.
-const snap10=n=>Math.round(n/10)*10;
-function retime(r,original,day,editKey,part,requested){
- const before=schedule(r,original),block=before.days[day]?.blocks.find(b=>b.edit?.key===editKey);
- if(!block||!Number.isFinite(requested))return null;
- const edit=block.edit,parts=edit.parts||['move','start','end'];if(!parts.includes(part))return null;
- const p=JSON.parse(JSON.stringify(original));
- let start=snap10(block.start),end=Math.max(start+10,snap10(block.end));
- const target=clamp(snap10(requested),0,1440);
- if(part==='move'){const duration=clamp(end-start,10,720);start=clamp(target,0,1440-duration);end=start+duration;}
- else if(part==='start')start=clamp(target,Math.max(0,end-720),end-10);
- else end=clamp(target,start+10,Math.min(1440,start+720));
- const wanted={start,end};
- if(start===block.start&&end===block.end)return{plan:p,schedule:before,block,requested:wanted,shifted:0,position:before.days[day].blocks.filter(b=>b.kind==='visit').findIndex(b=>b.edit.key===editKey)+1,adjusted:false};
- // A drag is one reflow from the original snapshot, never a series of edits.
- // Release soft start times in the affected chain; keep dwell times and service targets.
- function releaseFrom(index){
-  const affected=new Set(p.items[day].slice(index).map(x=>x.uid));
-  for(const item of p.items[day])if(affected.has(item.uid))item.start=null;
-  const blocks=before.days[day].blocks,first=blocks.findIndex(b=>b.kind==='visit'&&affected.has(b.uid));
-  const legs=new Set(blocks.slice(first<0?blocks.indexOf(block)+1:Math.max(0,first-1)).filter(b=>b.edit?.type==='leg').map(b=>b.edit.legKey));
-  for(const [key,value] of Object.entries(p.legTiming||{})){
-   if(key.startsWith(day+':')&&(legs.has(key)||[...affected].some(uid=>key.endsWith(':'+uid)))){
-    delete value.start;if(value.duration==null)delete p.legTiming[key];
-   }
-  }
- }
- if(edit.type==='visit'){
-  const items=p.items[day],index=items.findIndex(x=>x.uid===edit.uid);if(index<0)return null;
-  const item=items[index];
-  if(part==='move'){
-   items.splice(index,1);
-   const visits=before.days[day].blocks.filter(x=>x.kind==='visit'&&x.uid!==item.uid);
-   const center=start+(end-start)/2;
-   const position=visits.findIndex(x=>(x.start+x.end)/2>center);
-   items.splice(position<0?items.length:position,0,item);
-  }
-  releaseFrom(Math.min(index,items.indexOf(item)));
-  item.start=0;
-  const earliest=schedule(r,p).days[day].blocks.find(x=>x.uid===item.uid).start;
-  start=Math.max(start,Math.ceil(earliest/10)*10);
-  item.start=clamp(start,0,1430);
-  item.duration=part==='start'?clamp(end-start,10,720):clamp(wanted.end-wanted.start,10,720);
- }else if(edit.type==='leg'){
-  releaseFrom(before.days[day].blocks.filter(b=>b.kind==='visit'&&b.start<block.end).length);
-  p.legTiming=p.legTiming||{};delete p.legTiming[edit.legKey];
-  const earliest=schedule(r,p).days[day].blocks.find(x=>x.edit?.key===editKey)?.start??block.start;
-  start=Math.max(start,Math.ceil(earliest/10)*10);
-  p.legTiming[edit.legKey]={start:clamp(start,0,1430),duration:clamp(part==='start'?end-start:wanted.end-wanted.start,10,600)};
- }else if(edit.type==='service'){
-  releaseFrom(before.days[day].blocks.filter(b=>b.kind==='visit'&&b.start<block.end).length);
-  const [departure,ride,minStart,maxStart,minDuration,maxDuration]=edit.fields;
-  p[departure]=clamp(start,minStart,maxStart);p[ride]=clamp(end-start,minDuration,maxDuration);
-  const actual=schedule(r,p).days[day].blocks.find(x=>x.edit?.key===editKey);
-  if(actual.start>p[departure])p[departure]=clamp(Math.ceil(actual.start/10)*10,minStart,maxStart);
-  if(part==='start')p[ride]=clamp(end-p[departure],minDuration,maxDuration);
- }else if(edit.type==='night'){
-  p.hotelStarts=p.hotelStarts||[null,null];p.hotelStarts[day]=0;
-  const earliest=schedule(r,p).days[day].blocks.find(x=>x.edit?.key===editKey).start;
-  p.hotelStarts[day]=clamp(Math.max(start,Math.ceil(earliest/10)*10),0,1430);
- }else if(edit.type==='morning'){releaseFrom(0);p.starts[day]=clamp(end,300,1320);}
- const next=schedule(r,p),actual=next.days[day].blocks.find(x=>x.edit?.key===editKey);
- const visits=next.days[day].blocks.filter(b=>b.kind==='visit'),oldVisits=new Map(before.days[day].blocks.filter(b=>b.kind==='visit').map(b=>[b.uid,b]));
- const shifted=visits.filter(b=>b.edit.key!==editKey&&(b.start!==oldVisits.get(b.uid)?.start||b.end!==oldVisits.get(b.uid)?.end)).length;
- return{plan:p,schedule:next,block:actual,requested:wanted,shifted,position:visits.findIndex(b=>b.edit.key===editKey)+1,adjusted:actual.start!==wanted.start||actual.end!==wanted.end};
-}
-
-const api={snap10,retime,ORIGIN,origin,km,travel,createPlan,normalizePlan,schedule,isClosed,time,date,clamp};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.TripEngine=api;
+const api={ORIGIN,origin,clamp,round10,km,time,date,isClosed,travel,slots,eligible,createPlan,normalizePlan,schedule};
+if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.TripEngine=api;
 })(typeof window!=='undefined'?window:this);

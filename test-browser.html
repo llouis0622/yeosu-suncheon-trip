@@ -1,187 +1,135 @@
-<!doctype html><html lang="ko"><meta charset="utf-8"><title>여행 시간표 브라우저 검증</title><style>
-body{margin:0;background:#101113;color:#ddd;font:14px system-ui}header{display:flex;gap:8px;align-items:center;padding:12px;position:sticky;top:0;background:#191919;z-index:5;flex-wrap:wrap}button,select{padding:10px;background:#282828;color:#eee;border:1px solid #555}button:disabled{opacity:.4}#result{white-space:pre-wrap;padding:12px;max-height:260px;overflow:auto}iframe{display:block;border:1px solid #555;margin:12px}#result:empty{display:none}.ok{color:#e1d59d}
-</style><header><b>브라우저 검증</b><select id="size"><option>320 × 568</option><option>390 × 844</option><option>844 × 390</option><option>599 × 960</option><option>600 × 600</option><option>600 × 800</option><option>800 × 600</option><option>600 × 960</option><option>960 × 600</option><option>768 × 1024</option><option>1024 × 768</option><option>820 × 1180</option><option>1180 × 820</option><option>1024 × 1366</option><option>1366 × 1024</option><option>1366 × 900</option><option>1920 × 1080</option><option>740 × 360</option></select><button id="open">화면 열기</button><button id="run">18개 크기·회전 검사</button><button id="small">작은 창 추가 검사</button><button id="panes">분할 비율·새로고침 검사</button><span id="status"></span></header><pre id="result"></pre><iframe id="app" title="여행 플래너 테스트 화면"></iframe><script>
-const sizes=[[320,568],[390,844],[844,390],[599,960],[600,600],[600,800],[800,600],[600,960],[960,600],[768,1024],[1024,768],[820,1180],[1180,820],[1024,1366],[1366,1024],[1366,900],[1920,1080],[740,360]],frame=document.querySelector('#app'),output=document.querySelector('#result'),status=document.querySelector('#status'),testKey='yeosu-suncheon-timeline-test';
-const appURL=location.pathname.endsWith('/qa.html')?'./index.html':'./dist/index.html';
-const next=()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
-let serial=0,checks=0,failures=0;const log=(ok,label)=>{checks++;if(!ok)failures++;output.textContent+=(ok?'✓ ':'✕ ')+label+'\n';output.scrollTop=output.scrollHeight;if(!ok)throw Error(label)};
-async function load(w,h,reset=true){if(reset){localStorage.removeItem(testKey);localStorage.removeItem(testKey+'-panes');}frame.width=w;frame.height=h;await new Promise((resolve,reject)=>{const timeout=setTimeout(()=>reject(Error('iframe load timeout')),10000);frame.onload=()=>{clearTimeout(timeout);resolve()};frame.src=appURL+'?timeline-test=1&qa-run='+(++serial)+'#yeosu-suncheon/0'});await next();return frame.contentDocument;}
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>여수·순천 고정 일정 검증</title>
+<style>body{background:#18191b;color:#eee;font:14px system-ui;margin:12px}button,select{padding:9px;margin:3px;background:#303238;color:#fff;border:1px solid #666}iframe{display:block;border:0;max-width:none;margin-top:12px}pre{white-space:pre-wrap;font:12px monospace;max-height:280px;overflow:auto;background:#222;padding:12px}#status{margin:10px;font-weight:600}.toolbar{position:sticky;top:0;background:#18191b;z-index:5}</style>
+<div class="toolbar"><button id="run">전체 화면·동작 검사</button><select id="size" aria-label="검사 화면 크기"></select><button id="open">선택 크기 미리보기</button><span id="status" role="status">준비</span></div><pre id="output"></pre><iframe id="frame" title="여행 페이지 테스트"></iframe>
+<script>
+const sizes=[[320,568],[360,800],[390,844],[430,932],[568,320],[844,390],[600,600],[600,800],[800,600],[768,1024],[1024,768],[820,1180],[1180,820],[1024,1366],[1366,1024],[1024,700],[1280,720],[1440,900],[1920,1080]];
+const frame=document.querySelector('#frame'),output=document.querySelector('#output'),status=document.querySelector('#status'),key='yeosu-suncheon-fixed-test';
+document.querySelector('#size').innerHTML=sizes.map(([w,h])=>`<option>${w} × ${h}</option>`).join('');
+let checks=0,failures=0,errors=[],sizeLabel='';
+const tick=()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+const log=(value,name)=>{checks++;if(!value){failures++;output.textContent+=`FAIL ${sizeLabel}: ${name}\n`;}};
+const click=(d,s)=>{const el=d.querySelector(s);if(!el)throw Error('missing '+s);el.click();};
+const rect=(d,s)=>d.querySelector(s).getBoundingClientRect();
 const phone=(w,h)=>w<600||(w<1200&&h<600)||(w<760&&h<760);
-const click=(doc,sel)=>{const el=doc.querySelector(sel);if(!el)throw Error('missing '+sel);el.click();return el};
-const saved=()=>localStorage.getItem(testKey),current=()=>JSON.parse(saved()||'{}')['yeosu-suncheon:0'];
-function range(el){const text=el.querySelector('.time-block').getAttribute('aria-label'),m=[...text.matchAll(/(\d\d):(\d\d)/g)].map(x=>+x[1]*60 + +x[2]);return m.slice(-2)}
-function byKey(doc,key){return [...doc.querySelectorAll('[data-time-key]')].find(x=>x.dataset.timeKey===key)}
-function axis(doc){return doc.querySelector('#timeScroll').dataset.axis==='top'?{pos:'top',end:'bottom',size:'height',scroll:'scrollTop',extent:'scrollHeight',viewport:'clientHeight',client:'clientY'}:{pos:'left',end:'right',size:'width',scroll:'scrollLeft',extent:'scrollWidth',viewport:'clientWidth',client:'clientX'}}
-function coordinates(rect,a,value){return {clientX:a.client==='clientX'?value:rect.left+rect.width/2,clientY:a.client==='clientY'?value:rect.top+rect.height/2}}
-function pointer(doc,key,part,delta,type='touch',finish='pointerup'){
- const event=byKey(doc,key),control=event.querySelector('[data-time-part="'+part+'"]'),rect=control.getBoundingClientRect(),canvas=doc.querySelector('#timeCanvas').getBoundingClientRect(),a=axis(doc),x=rect[a.pos]+rect[a.size]/2,win=doc.defaultView;
- const send=(target,name,id,px,primary=true)=>target.dispatchEvent(new win.PointerEvent(name,{pointerId:id,pointerType:type,button:0,buttons:name==='pointerup'?0:1,...coordinates(rect,a,px),bubbles:true,cancelable:true,isPrimary:primary}));
- send(control,'pointerdown',101,x);send(win,'pointermove',101,x+delta/1440*canvas[a.size]);
- if(finish==='second-touch'){send(control,'pointerdown',102,x+20,false);send(win,'pointerup',101,x+delta/1440*canvas[a.size]);}
- else if(finish==='escape'){control.dispatchEvent(new win.KeyboardEvent('keydown',{key:'Escape',bubbles:true}));send(win,'pointerup',101,x+delta/1440*canvas[a.size]);}
- else send(win,finish,101,x+delta/1440*canvas[a.size]);
+const selected=d=>[...d.querySelectorAll('[data-slot-value]')].map(e=>[e.dataset.block,e.dataset.slotValue]);
+const route=(d,a,b)=>!!d.querySelector(`[data-route-from="${a}"][data-route-to="${b}"]`);
+const ratios=d=>d.querySelector('#main').dataset.paneSizes.split(',').map(Number);
+const near=(a,b)=>Math.abs(a-b)<.003;
+function change(d,s,v){const el=d.querySelector(s);el.value=v;el.dispatchEvent(new d.defaultView.Event('change',{bubbles:true}));}
+function keypress(d,s,key,shift=false){d.querySelector(s).dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key,shiftKey:shift,bubbles:true,cancelable:true}));}
+async function load(w,h,clear=true){
+ if(clear)localStorage.removeItem(key);sizeLabel=w+'×'+h;frame.width=w;frame.height=h;
+ await new Promise((resolve,reject)=>{frame.onload=resolve;frame.onerror=reject;frame.src='./index.html?trip-test=1&qa='+Date.now();});
+ const d=frame.contentDocument;
+ d.defaultView.addEventListener('error',e=>errors.push(e.message));
+ d.defaultView.addEventListener('unhandledrejection',e=>errors.push(String(e.reason)));
+ await tick();return d;
 }
-function beginPointer(doc,key,part,type='touch'){
- const control=byKey(doc,key).querySelector('[data-time-part="'+part+'"]'),rect=control.getBoundingClientRect(),canvas=doc.querySelector('#timeCanvas').getBoundingClientRect(),win=doc.defaultView,a=axis(doc),x=rect[a.pos]+rect[a.size]/2;
- let px=x;
- const send=(target,name)=>target.dispatchEvent(new win.PointerEvent(name,{pointerId:301,pointerType:type,isPrimary:true,button:0,buttons:name==='pointerup'?0:1,...coordinates(rect,a,px),bubbles:true,cancelable:true}));
- send(control,'pointerdown');
- return {control,move(delta){px=x+delta/1440*canvas[a.size];send(win,'pointermove')},end(cancel=false){send(win,cancel?'pointercancel':'pointerup')}};
+function startDivider(d,index,type='touch'){
+ const el=d.querySelectorAll('.pane-divider')[index],r=el.getBoundingClientRect(),rows=d.querySelector('#main').dataset.layout==='rows',win=d.defaultView;
+ const origin={clientX:r.x+r.width/2,clientY:r.y+r.height/2};let pos={...origin};
+ const send=(target,name)=>target.dispatchEvent(new win.PointerEvent(name,{pointerId:44,pointerType:type,isPrimary:true,button:0,buttons:name==='pointerup'?0:1,...pos,bubbles:true,cancelable:true}));
+ send(el,'pointerdown');return {move(delta){pos[rows?'clientY':'clientX']=origin[rows?'clientY':'clientX']+delta;send(win,'pointermove');},end(cancel=false){send(win,cancel?'pointercancel':'pointerup');}};
 }
-const visitSnapshot=doc=>JSON.stringify([...doc.querySelectorAll('.time-event.visit')].map(el=>[el.dataset.timeKey,...range(el)]).sort((a,b)=>a[0].localeCompare(b[0])));
-async function suite(w,h){
- let d=await load(w,h);
- const header=d.querySelector('#appHeader').getBoundingClientRect(),map=d.querySelector('.map-frame').getBoundingClientRect(),candidates=d.querySelector('#candidatePanel').getBoundingClientRect(),initialPlanner=d.querySelector('#planner').getBoundingClientRect();
- log(header.height<=50,'single compact header stays within 50px');
- log(d.querySelector('#viewSwitch').getBoundingClientRect().top<header.bottom,'view tabs sit beside the title');
- if(!phone(w,h)&&h>=w){
-  log(Math.abs(map.height/candidates.height-2)<.05&&Math.abs(initialPlanner.height/candidates.height-1)<.03,'portrait rows follow 50 / 25 / 25 proportions');
-  log(map.bottom<=candidates.top&&candidates.bottom<=initialPlanner.top&&initialPlanner.bottom<=h,'portrait panes stack within the viewport');
- }else if(!phone(w,h)){
-  log(map.height>=h-header.height-20,'landscape map occupies the full available height');
-  log(Math.abs(map.width/candidates.width-2)<.05&&Math.abs(initialPlanner.width/candidates.width-1)<.03,'desktop columns follow 50 / 25 / 25 proportions');
-  log(Math.abs(map.top-candidates.top)<1&&Math.abs(map.top-initialPlanner.top)<1,'map, recommendations and schedule share one top edge');
+async function layoutSuite(w,h){
+ let d=await load(w,h);const isPhone=phone(w,h),rows=!isPhone&&h>=w;
+ log(d.querySelectorAll('[data-pin]').length===65,'all candidates + 2 neighborhood origin pins exist');
+ log([...d.querySelectorAll('[data-pin]:not([data-type=origin])')].every(p=>!p.hidden),'initial map fits every candidate even in portrait rows');
+ log(!d.querySelector('[data-course]')&&!d.querySelector('[data-time-part]'),'course selector and timeline editing removed');
+ const header=rect(d,'#appHeader'),map=rect(d,'.map-frame'),places=rect(d,'#candidatePanel'),schedule=rect(d,'#planner');
+ log(header.height<=50,'compact header');
+ log(rect(d,'.view-switch').right<=w,'header tabs fit');
+ log(d.documentElement.scrollWidth<=w+1&&d.documentElement.scrollHeight<=h+1,'no page overflow');
+ if(isPhone){
+  log(map.width>0&&places.width===0&&schedule.width===0,'phone starts on map tab');
+  log([...d.querySelectorAll('.pane-divider')].every(e=>e.getBoundingClientRect().width===0),'no phone dividers');
  }else{
-  log(candidates.width===0&&initialPlanner.width===0,'phone starts with map alone');
-  log(map.height>=h-header.height-20,'phone map uses the available height');
-  log([...d.querySelectorAll('.pane-divider')].every(el=>!el.getBoundingClientRect().width),'phone hides pane dividers');
-  click(d,'#pane-schedule');
+  const dimension=rows?'height':'width';
+  log(near(map[dimension]/places[dimension],2)&&near(schedule[dimension]/places[dimension],1),'50 / 25 / 25 default proportions');
+  log(rows?map.bottom<=places.top&&places.bottom<=schedule.top:map.right<=places.left&&places.right<=schedule.left,'non-overlapping panes in expected orientation');
+  log(d.querySelector('#main').dataset.layout===(rows?'rows':'columns'),'responsive layout axis');
+  const old=ratios(d),drag=startDivider(d,0);drag.move(24);const live=ratios(d);
+  log(live[0]>old[0]&&live[1]<old[1]&&near(live[2],old[2]),'first divider resizes adjacent panes');drag.end();
+  const second=startDivider(d,1,'mouse');second.move(-15);log(ratios(d)[1]<live[1]&&near(ratios(d)[0],live[0]),'second divider leaves map unchanged');second.end(true);
+  log(ratios(d).every((v,i)=>near(v,live[i])),'cancel restores divider sizes');
+  const extreme=startDivider(d,1);extreme.move(10000);extreme.end();
+  const minSchedule=rect(d,'#planner');
+  log(d.documentElement.scrollWidth<=w+1,'extreme resizing does not overflow page');
+  log([...d.querySelectorAll('.planner-top button')].every(el=>el.getBoundingClientRect().right<=minSchedule.right+1),'controls fit minimum schedule size');
+  keypress(d,'#mapDivider','Home');log(ratios(d).every((v,i)=>near(v,[.5,.25,.25][i])),'Home resets panes');
+  keypress(d,'#mapDivider',rows?'ArrowUp':'ArrowLeft');log(near(ratios(d)[0],.45),'keyboard resizes by five percent');
+  d=await load(w,h,false);log(ratios(d).every((v,i)=>near(v,[.5,.25,.25][i])),'reload resets 50 / 25 / 25');
  }
- await next();
- const main=d.querySelector('#main'),planner=d.querySelector('#planner');
- log(d.documentElement.scrollWidth<=w+1,w+'×'+h+' page has no horizontal overflow');
- log(planner.getBoundingClientRect().right<=w+1&&planner.getBoundingClientRect().left>=0,'planner fits viewport');
- log(main.scrollWidth<=main.clientWidth+1,'main does not spill horizontally');
- const a=axis(d),rows=!phone(w,h)&&h>=w;log(a.pos===(rows?'left':'top'),'timeline axis follows the pane shape');
- log(d.querySelector('#timeCanvas').getBoundingClientRect()[a.size]/144>=13,'ten-minute cells have usable zoom');
- if(a.pos==='top')log(d.querySelector('#timeScroll').scrollWidth<=d.querySelector('#timeScroll').clientWidth+1,'vertical timeline needs no horizontal scrolling');
- else log(d.querySelector('#timeScroll').scrollHeight<=d.querySelector('#timeScroll').clientHeight+1,'portrait horizontal timeline fits its row height');
- log(d.querySelector('#timeScroll').clientHeight>=(rows?65:100),'timeline retains usable height on short screens');
- const first=d.querySelector('.time-event.visit'),key=first.dataset.timeKey,initial=range(first),count=d.querySelectorAll('.time-event.visit').length;
- const visible=d.querySelector('#timeScroll').getBoundingClientRect(),firstRect=first.getBoundingClientRect();
- log(firstRect[a.pos]<visible[a.end]&&firstRect[a.end]>visible[a.pos],'first visit is visible when opening schedule');
- // Observe live reflow before pointerup, including repeated moves on one captured control.
- const originalVisits=visitSnapshot(d),beforeFlow=saved(),neighbor=d.querySelectorAll('.time-event.visit')[1],neighborKey=neighbor.dataset.timeKey,neighborStart=range(neighbor)[0];
- const resize=beginPointer(d,key,'end');resize.move(30);
- log(range(byKey(d,neighborKey))[0]>neighborStart,'neighbor moves during live resize before release');
- log(saved()===beforeFlow,'live preview does not save intermediate edits');
- log(resize.control.isConnected,'active pointer control survives live reconciliation');
- const animations=[...d.querySelectorAll('[data-timeline-id]')].flatMap(el=>el.getAnimations());
- log(d.defaultView.matchMedia('(prefers-reduced-motion: reduce)').matches||animations.some(a=>a.id==='timeline-flow'),'neighbors animate toward their preview positions');
- const liveVisits=visitSnapshot(d);resize.end();
- log(visitSnapshot(d)===liveVisits,'drop keeps exactly the previewed schedule');
- log(d.querySelector('#timelineGhost').hidden&&!d.querySelector('.timeline-dragging'),'drop removes ghost and landing placeholder');
- await new Promise(resolve=>setTimeout(resolve,220));
- const settled=[...d.querySelectorAll('.time-event.visit')].map(el=>el.getBoundingClientRect()).sort((x,y)=>x[a.pos]-y[a.pos]);
- log(settled.every((rect,i)=>!i||rect[a.pos]>=settled[i-1][a.end]-.5),'settled visit cards have no overlap');
- click(d,'[data-action="undo"]');log(visitSnapshot(d)===originalVisits,'one undo restores all shifted neighbors');
- const beforeCancel=saved(),drag=beginPointer(d,key,'move','mouse');drag.move(230);
- log(range(byKey(d,neighborKey))[0]<neighborStart,'moving a visit later pulls its neighbor into the vacated slot');
- drag.move(30);log(range(byKey(d,neighborKey))[0]>neighborStart,'moving back restores order and pushes the following visit');
- drag.move(230);log(drag.control.isConnected,'repeated reorders keep the original control alive');
- const ids=[...d.querySelectorAll('[data-timeline-id]')].map(el=>el.dataset.timelineId);
- log(new Set(ids).size===ids.length,'live reordering creates no duplicate blocks');
- drag.end(true);log(visitSnapshot(d)===originalVisits&&saved()===beforeCancel,'cancel restores every previewed neighbor without saving');
- const beforeNoOp=saved(),noOp=beginPointer(d,key,'move');noOp.move(40);noOp.move(0);
- log(visitSnapshot(d)===originalVisits,'dragging back to the original cell restores the full schedule');
- noOp.end();log(saved()===beforeNoOp,'dropping in the original cell creates no extra saved edit');
- const sc=d.querySelector('#timeScroll'),beforeScroll=sc[a.scroll],autoDirection=sc[a.extent]-sc[a.viewport]-sc[a.scroll]<100?-1:1,control=byKey(d,key).querySelector('[data-time-part="move"]'),rect=control.getBoundingClientRect(),beforeAuto=saved();
- control.dispatchEvent(new d.defaultView.PointerEvent('pointerdown',{pointerId:201,pointerType:'touch',isPrimary:true,button:0,buttons:1,...coordinates(rect,a,Math.max(visible[a.pos]+40,rect[a.pos]+20)),bubbles:true}));
- d.defaultView.dispatchEvent(new d.defaultView.PointerEvent('pointermove',{pointerId:201,pointerType:'touch',isPrimary:true,button:0,buttons:1,...coordinates(rect,a,autoDirection===1?visible[a.end]-5:visible[a.pos]+5),bubbles:true,cancelable:true}));
- await next();await next();log(autoDirection===1?sc[a.scroll]>beforeScroll:sc[a.scroll]<beforeScroll,'drag near edge automatically scrolls timeline');
- d.defaultView.dispatchEvent(new d.defaultView.PointerEvent('pointercancel',{pointerId:201,pointerType:'touch',bubbles:true}));
- log(saved()===beforeAuto,'cancel after auto-scroll does not save');sc[a.scroll]=beforeScroll;
- pointer(d,key,'move',26,'mouse');let moved=range(byKey(d,key));log(moved[0]===initial[0]+30&&moved[1]===initial[1]+30,'mouse move snaps to ten minutes');
- click(d,'[data-action="undo"]');log(range(byKey(d,key)).join()===initial.join(),'one undo restores entire drag');
- pointer(d,key,'end',23);let end=range(byKey(d,key));log(end[0]===initial[0]&&end[1]===initial[1]+20,'touch trailing edge extends only end');
- click(d,'[data-action="undo"]');pointer(d,key,'start',21);let start=range(byKey(d,key));log(start[0]===initial[0]+20&&start[1]===initial[1],'touch leading edge preserves end');
- click(d,'[data-action="undo"]');
- for(const ending of ['pointercancel','second-touch','escape']){const before=saved();pointer(d,key,'move',40,'touch',ending);log(saved()===before&&!d.body.classList.contains('timeline-editing'),ending+' cancels without saving');}
- byKey(d,key).querySelector('[data-time-part="move"]').dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:a.pos==='top'?'ArrowDown':'ArrowRight',bubbles:true,cancelable:true}));
- log(range(byKey(d,key))[0]===initial[0]+10,'keyboard moves ten minutes');click(d,'[data-action="undo"]');
- pointer(d,key,'move',20,'touch');log(range(byKey(d,key))[0]===initial[0]+20,'touch body moves block');
- d=await load(w,h,false);if(phone(w,h))click(d,'#pane-schedule');await next();
- log(range(byKey(d,key))[0]===initial[0]+20,'reload preserves moved position');
- const leg=d.querySelector('.time-event.travel.editable[data-time-key^="leg:"]'),legkey=leg.dataset.timeKey;
- pointer(d,legkey,'end',20,'touch');const legRange=range(byKey(d,legkey));d=await load(w,h,false);if(phone(w,h))click(d,'#pane-schedule');await next();
- log(range(byKey(d,legkey)).join()===legRange.join(),'reload preserves transport edit');
- await new Promise(resolve=>setTimeout(resolve,550));click(d,'[data-time-key="'+legkey+'"] .time-block');click(d,'[data-action="timeline-edit"]');click(d,'[data-action="timeline-auto"]');
- log(!current().legTiming[legkey.replace(/^leg:/,'')],'local travel can return to automatic calculation');
- click(d,'[data-action="add-place"]');const picker=d.querySelector('#pickerStart');picker.value='16:23';picker.dispatchEvent(new d.defaultView.Event('change',{bubbles:true}));
- log(d.querySelector('#pickerStart').value==='16:20','time entry snaps to ten minutes');
- click(d,'[data-pick="ys_hamel"]');click(d,'#closeDialog');log(d.querySelectorAll('.time-event.visit').length===count+1,'picker inserts chosen place');
- const visit=d.querySelector('.time-event.visit');click(d,'[data-time-key="'+visit.dataset.timeKey+'"] .time-block');
- log(d.querySelector('[data-action="timeline-edit"]').getBoundingClientRect().right<=w+1,'selected block actions stay in viewport');
- click(d,'[data-action="timeline-edit"]');const dialog=d.querySelector('#dialog').getBoundingClientRect();
- log(dialog.width<=w&&dialog.height<=h,'edit dialog fits viewport');click(d,'#closeDialog');
- log([...d.querySelectorAll('.time-event.visit')].every(el=>range(el).every(n=>n%10===0)),'all visits end on ten-minute cells');
- if(!phone(w,h)){
-  const beforeView=visitSnapshot(d);click(d,'#pane-schedule');await next();
-  log(axis(d).pos==='left','focused desktop schedule switches to horizontal time');
-  const focused=d.querySelector('.time-event.visit'),focusedKey=focused.dataset.timeKey,focusedRange=range(focused);
-  pointer(d,focusedKey,'move',20,'mouse');log(range(byKey(d,focusedKey))[0]===focusedRange[0]+20,'horizontal drag still snaps and moves');
-  click(d,'[data-action="undo"]');click(d,'#pane-split');await next();
-  log(axis(d).pos===(rows?'left':'top')&&visitSnapshot(d)===beforeView,'returning to split view preserves edits and time axis');
-  await dividerSuite(d,w,h);
- }
- if(phone(w,h)){click(d,'#pane-map');log(d.querySelector('#viewport').getBoundingClientRect().width>0,'map view remains accessible');click(d,'#pane-places');log(d.querySelector('#candidateList').getBoundingClientRect().height>120,'candidate list remains usable');}
-}
-function beginDivider(doc,index){
- const control=doc.querySelectorAll('.pane-divider')[index],rect=control.getBoundingClientRect(),rows=doc.querySelector('#main').dataset.layout==='rows',a={client:rows?'clientY':'clientX',pos:rows?'top':'left',size:rows?'height':'width'},x=rect[a.pos]+rect[a.size]/2,win=doc.defaultView;let pos=x;
- const send=(name)=>win.dispatchEvent(new win.PointerEvent(name,{pointerId:701,pointerType:'touch',isPrimary:true,button:0,buttons:name==='pointerup'?0:1,...coordinates(rect,a,pos),bubbles:true,cancelable:true}));
- control.dispatchEvent(new win.PointerEvent('pointerdown',{pointerId:701,pointerType:'touch',isPrimary:true,button:0,buttons:1,...coordinates(rect,a,x),bubbles:true,cancelable:true}));
- return {control,move(delta){pos=x+delta;send('pointermove')},end(cancel=false){send(cancel?'pointercancel':'pointerup')}};
-}
-const paneRatios=doc=>doc.querySelector('#main').dataset.paneSizes.split(',').map(Number);
-async function dividerSuite(d,w,h){
- const originalPlan=saved(),initial=paneRatios(d),before=localStorage.getItem(testKey+'-panes'),drag=beginDivider(d,0);drag.move(35);
- const live=paneRatios(d);log(live[0]>initial[0]&&live[1]<initial[1]&&Math.abs(live[2]-initial[2])<.0001,'first divider resizes only its neighboring panes');
- log(localStorage.getItem(testKey+'-panes')===before,'pane resize preview is not saved before release');drag.end();
- log(paneRatios(d).every((v,i)=>Math.abs(v-live[i])<.0001)&&localStorage.getItem(testKey+'-panes')===before,'released pane ratio stays in memory without persistent storage');
- const committed=localStorage.getItem(testKey+'-panes'),second=beginDivider(d,1);second.move(-30);const middle=paneRatios(d);
- log(Math.abs(middle[0]-live[0])<.0001&&middle[1]<live[1],'second divider leaves map size unchanged');second.end(true);
- log(localStorage.getItem(testKey+'-panes')===committed&&paneRatios(d).every((v,i)=>Math.abs(v-live[i])<.0001),'cancel restores the previous pane sizes');
- // Legacy saved preferences must not override the new reload default.
- localStorage.setItem(testKey+'-panes',JSON.stringify({columns:[.6,.2,.2],rows:[.4,.35,.25]}));
- d=await load(w,h,false);log(paneRatios(d).every((v,i)=>Math.abs(v-[.5,.25,.25][i])<.0001),'reload resets to 50 / 25 / 25 even with legacy stored ratios');
- const control=d.querySelector('.pane-divider'),rows=d.querySelector('#main').dataset.layout==='rows';
- control.dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:'Home',bubbles:true,cancelable:true}));
- log(paneRatios(d).every((v,i)=>Math.abs(v-[.5,.25,.25][i])<.0001),'Home resets to 50 / 25 / 25');
- control.dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:rows?'ArrowUp':'ArrowLeft',bubbles:true,cancelable:true}));
- log(Math.abs(paneRatios(d)[0]-.45)<.0001,'keyboard resizes by five percent');
- control.dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key:rows?'ArrowDown':'ArrowRight',shiftKey:true,bubbles:true,cancelable:true}));
- log(Math.abs(paneRatios(d)[0]-.46)<.0001,'Shift and arrow resizes by one percent');
- const extreme=beginDivider(d,1);extreme.move(10000);extreme.end();
- log(paneRatios(d).every(v=>v>=.1)&&d.documentElement.scrollWidth<=w+1,'extreme drag keeps every pane available and avoids page overflow');
- const bounds=d.querySelector('#planner').getBoundingClientRect();
- log([...d.querySelectorAll('.planner-top button')].filter(el=>el.getBoundingClientRect().width).every(el=>el.getBoundingClientRect().right<=bounds.right+1),'planner controls fit even at minimum pane width');
- if(rows)log(d.querySelector('#timeScroll').clientHeight>=65,'minimum portrait schedule height remains editable');
- control.dispatchEvent(new d.defaultView.MouseEvent('dblclick',{bubbles:true}));
- log(paneRatios(d).every((v,i)=>Math.abs(v-[.5,.25,.25][i])<.0001),'double click restores the default ratio');
- log(saved()===originalPlan,'pane sizing leaves the travel plan unchanged');
+ click(d,'#pane-schedule');
+ log(rect(d,'#planner').width<=w&&rect(d,'#scheduleScroll').height>=80,'schedule tab remains usable');
+ log(d.querySelector('[data-block="d0-lunch"]').dataset.slotValue==='','initial meal is unselected');
+ click(d,'[data-slot="d0-lunch"]');
+ log(d.querySelector('#activeSlot').value==='d0-lunch','meal click selects matching candidate tab');
+ log([...d.querySelectorAll('[data-card]')].every(e=>e.textContent.includes('순천')),'lunch list contains Suncheon choices');
+ log(d.querySelectorAll('[data-pin]').length===65,'list filters do not remove map candidates');
+ click(d,'[data-use="sc_nanulteo"]');
+ log(route(d,'sc_tteok','sc_nanulteo')&&route(d,'sc_nanulteo','sc_garden')&&!route(d,'sc_tteok','sc_garden'),'choice inserts restaurant into route');
+ click(d,'#pane-schedule');
+ const lunch=d.querySelector('[data-block="d0-lunch"]');
+ log(lunch.dataset.slotValue==='sc_nanulteo'&&Number(lunch.dataset.end)-Number(lunch.dataset.start)===90,'selected lunch retains ninety minutes');
+ click(d,'[data-action="undo"]');log(route(d,'sc_tteok','sc_garden'),'undo restores direct route');
+ click(d,'[data-action="redo"]');log(route(d,'sc_tteok','sc_nanulteo'),'redo restores selection');
+ click(d,'[data-slot="d0-lunch"]');click(d,'[data-use="sc_gunbong"]');
+ log(route(d,'sc_tteok','sc_gunbong')&&!route(d,'sc_tteok','sc_nanulteo'),'replacement removes previous restaurant route');
+ click(d,'#pane-schedule');click(d,'[data-clear-slot="d0-lunch"]');
+ log(route(d,'sc_tteok','sc_garden'),'clear removes detour');
+ // Default 24-hour view is read-only and always fits its available width.
+ click(d,'[data-view="timeline"]');
+ log(!!d.querySelector('.time-block')&&!d.querySelector('[data-time-part]'),'24-hour chart is read-only');
+ log(d.documentElement.scrollWidth<=w+1,'24-hour chart has no page overflow');
+ click(d,'[data-view="sequence"]');
+ click(d,'#pane-places');change(d,'#activeSlot','hotel');click(d,'[data-use="ys_stay_sono"]');
+ log(d.querySelector('[data-pin="ys_stay_sono"]').classList.contains('layer-selected'),'hotel selection updates map');
+ log(![...d.querySelectorAll('[data-route-to]')].some(e=>e.dataset.routeTo==='ys_stay_shilla'),'old hotel removed from every route');
+ click(d,'#pane-schedule');click(d,'#planner [data-day="2"]');
+ click(d,'[data-slot="d2-break"]');click(d,'[data-use="ys_goso"]');
+ log(route(d,'ys_odongdo','ys_goso'),'optional mural village in day three route');
+ click(d,'#pane-schedule');click(d,'[data-slot="d2-break"]');click(d,'[data-use="ys_moifin"]');
+ log(route(d,'ys_odongdo','ys_moifin')&&!route(d,'ys_odongdo','ys_goso'),'cafe replaces mural village');
+ d=await load(w,h,false);click(d,'#pane-schedule');click(d,'#planner [data-day="2"]');
+ log(d.querySelector('[data-block="d2-break"]').dataset.slotValue==='ys_moifin'&&d.querySelector('[data-pin="ys_stay_sono"]').classList.contains('layer-selected'),'reload retains cafe and hotel choices');
+ click(d,'[data-action="schedule-info"]');const dialog=rect(d,'#dialog');
+ log(dialog.width<=w&&dialog.height<=h,'warning dialog fits viewport');
+ log(d.querySelector('#dialogBody').textContent.includes('13:30'),'late-return warning is visible');click(d,'#closeDialog');
+ click(d,'#pane-places');change(d,'#activeSlot','');click(d,'[data-category="hotel"]');click(d,'[data-detail="ys_stay_sono"]');
+ log(d.querySelector('#detailBody').textContent.includes('욕조'),'room detail includes bath conditions');
+ const detail=rect(d,'#detail');log(detail.width<=w&&detail.height<=h,'place detail fits viewport');click(d,'#closeDetail');
+ click(d,'#pane-map');click(d,'#mapPlay');await tick();
+ log(d.querySelector('#mapPlay').getAttribute('aria-pressed')==='true'&&!d.querySelector('#playCaption').hidden,'route animation starts');
+ click(d,'#mapPlay');log(d.querySelector('#mapPlay').getAttribute('aria-pressed')==='false','animation pauses');
+ click(d,'#arrivalReplay');log(!d.querySelector('#skipArrival').hidden&&d.querySelector('#playCaption').textContent.includes('대연동'),'Busan departure playback retained');
+ click(d,'#skipArrival');
+ output.textContent+=`PASS completed ${w} × ${h}\n`;
 }
 async function rotationSuite(w,h){
- let d=await load(w,h);click(d,'[data-plan-day="1"]');
- const visit=d.querySelector('.time-event.visit'),key=visit.dataset.timeKey;pointer(d,key,'move',20,'mouse');
- const originalPlan=saved(),originalVisits=visitSnapshot(d),drag=beginDivider(d,0);drag.move(30);drag.end();const rows=paneRatios(d);
- frame.width=h;frame.height=w;await next();await next();
- log(d.querySelector('#main').dataset.pane==='split'&&d.querySelector('#main').dataset.layout==='columns','tablet rotation keeps all panes in landscape columns');
- log(axis(d).pos==='top'&&saved()===originalPlan&&visitSnapshot(d)===originalVisits,'rotation preserves the selected day and itinerary edits');
- log(paneRatios(d).every((v,i)=>Math.abs(v-[.5,.25,.25][i])<.0001),'landscape ratio is independent from portrait ratio');
- const columnDrag=beginDivider(d,1);columnDrag.move(-25);columnDrag.end();const columns=paneRatios(d);
- frame.width=w;frame.height=h;await next();await next();
- log(d.querySelector('#main').dataset.layout==='rows'&&axis(d).pos==='left','rotating back restores stacked panes and horizontal time');
- log(paneRatios(d).every((v,i)=>Math.abs(v-rows[i])<.0001),'portrait remembers its own resized proportions');
- const pending=beginDivider(d,0),before=localStorage.getItem(testKey+'-panes');pending.move(20);
- frame.width=h;frame.height=w;await next();await next();
- log(!d.body.classList.contains('resizing-panes')&&localStorage.getItem(testKey+'-panes')===before,'rotation cancels an unfinished divider gesture');
- log(paneRatios(d).every((v,i)=>Math.abs(v-columns[i])<.0001),'landscape remembers its own resized proportions');
- click(d,'[data-action="undo"]');log(saved()!==originalPlan,'itinerary undo remains usable after repeated rotations');
+ let d=await load(w,h);click(d,'#planner [data-day="1"]');
+ const drag=startDivider(d,0);drag.move(20);drag.end();const before=ratios(d);
+ frame.width=h;frame.height=w;await tick();await tick();
+ log(d.querySelector('#main').dataset.layout==='columns'&&d.querySelector('#main').dataset.pane==='split','tablet rotation uses columns');
+ log(d.querySelector('#planner [data-day="1"]').getAttribute('aria-pressed')==='true','rotation retains day');
+ log(ratios(d).every((v,i)=>near(v,[.5,.25,.25][i])),'independent landscape default sizes');
+ frame.width=w;frame.height=h;await tick();await tick();
+ log(d.querySelector('#main').dataset.layout==='rows'&&ratios(d).every((v,i)=>near(v,before[i])),'rotation back restores in-session portrait proportions');
 }
-document.querySelector('#open').onclick=async()=>{output.textContent='';const[w,h]=document.querySelector('#size').value.split(' × ').map(Number);await load(w,h);status.textContent=w+' × '+h;};
-async function runSuites(selected=sizes,rotate=true,panesOnly=false){const button=document.querySelector('#run');button.disabled=true;checks=failures=0;output.textContent='DOM PointerEvent mouse/touch simulation + real browser layout. Physical device gestures are not covered.\n';try{for(const[w,h]of selected){status.textContent=w+' × '+h+' 검사 중';if(panesOnly)await dividerSuite(await load(w,h),w,h);else await suite(w,h);}for(const[w,h]of (rotate?[[768,1024],[820,1180],[1024,1366]]:[])){status.textContent=w+' × '+h+' 회전 검사 중';await rotationSuite(w,h);}}catch(e){output.textContent+='ERROR '+e.stack+'\n';failures++;}finally{button.disabled=false;status.textContent=checks+' checks · '+failures+' failures';output.dataset.checks=checks;output.dataset.failures=failures;localStorage.removeItem(testKey);localStorage.removeItem(testKey+'-panes');}};
-document.querySelector('#run').onclick=()=>runSuites();
-document.querySelector('#panes').onclick=()=>runSuites([[1366,900],[768,1024]],true,true);
-document.querySelector('#small').onclick=()=>runSuites([[600,800],[800,600],[600,600],[1366,900]],false);
+async function sharingSuite(){
+ const d=await load(1280,800);click(d,'[data-slot="d0-lunch"]');click(d,'[data-use="sc_nanulteo"]');
+ const current=localStorage.getItem(key),encoded=btoa(unescape(encodeURIComponent(current))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+ localStorage.removeItem(key);
+ await new Promise(resolve=>{frame.onload=resolve;frame.src='./index.html?trip-test=1&qa=share#plan='+encoded;});await tick();
+ const doc=frame.contentDocument;log(route(doc,'sc_tteok','sc_nanulteo'),'shared selection URL restores detour');
+ log(!doc.location.hash,'shared URL is consumed after import');
+}
+document.querySelector('#open').onclick=async()=>{const[w,h]=document.querySelector('#size').value.split(' × ').map(Number);await load(w,h);status.textContent=w+' × '+h;};
+document.querySelector('#run').onclick=async()=>{
+ const button=document.querySelector('#run');button.disabled=true;checks=failures=0;errors=[];output.textContent='Real Chromium layout; synthetic pointer/keyboard events. Physical devices are not covered.\n';
+ try{for(const[w,h]of sizes){status.textContent=w+' × '+h+' 검사 중';await layoutSuite(w,h);}for(const[w,h]of [[768,1024],[820,1180],[1024,1366]])await rotationSuite(w,h);await sharingSuite();log(errors.length===0,'no application errors: '+errors.join('; '));}
+ catch(e){failures++;output.textContent+='ERROR '+e.stack+'\n';}
+ finally{button.disabled=false;status.textContent=checks+' checks · '+failures+' failures';output.dataset.checks=checks;output.dataset.failures=failures;localStorage.removeItem(key);}
+};
 document.querySelector('#open').click();
 </script></html>

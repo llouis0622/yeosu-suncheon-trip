@@ -13,9 +13,7 @@ for tool in python3 node; do
   command -v "$tool" >/dev/null || { echo "$tool 설치가 필요합니다."; exit 1; }
 done
 python3 build.py
-for test in test-engine.js test-ui.js test-responsive.js test-gestures.js test-playback.js test-timeline.js; do
-  node "$test"
-done
+node test-engine.js
 python3 test-build.py
 if [ "$check_only" -eq 1 ]; then echo '빌드·자동 검사 완료. GitHub에는 게시하지 않았습니다.'; exit 0; fi
 
@@ -45,9 +43,9 @@ elif gh repo view "$repo" >/dev/null 2>&1; then
   echo "$repo 저장소가 이미 있습니다. 새 이름을 지정하세요: bash deploy.sh yeosu-suncheon-trip-2"; exit 1
 fi
 # 이 프로젝트의 소스와 빌드 결과만 커밋합니다.
-git add .gitignore README.md QA.md deploy.sh publish.sh build.py ui.css ui.js engine.js data.json map-fragment.html dist/index.html dist/.nojekyll test-*.js test-build.py test-browser.html
+git add .gitignore README.md QA.md deploy.sh publish.sh build.py ui.css ui.js map.css map.js engine.js data.json map-fragment.html dist/index.html dist/.nojekyll test-engine.js test-build.py test-browser.html
 if ! git diff --cached --quiet; then
-  git -c user.name="$owner" -c user.email="$owner@users.noreply.github.com" commit -m 'Enable ten-minute timeline drag and resize'
+  git -c user.name="$owner" -c user.email="$owner@users.noreply.github.com" commit -m 'Use fixed car itinerary with selectable meals, cafes and Yeosu lodging'
 fi
 if [ -z "$remote" ]; then
   gh repo create "$repo" --public --source=. --remote=origin --description '2026년 11월 28–30일 여수·순천 여행 지도와 일정 편집기'

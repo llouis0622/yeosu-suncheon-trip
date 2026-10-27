@@ -1,38 +1,102 @@
-// Domain regressions for the actual three-day journey, independent of the UI.
-const assert=require('node:assert/strict');
-const E=require('./engine.js'),r=require('./data.json')[0];
-let checks=0;const check=(v,m)=>{assert(v,m);checks++;};
-for(let c=0;c<r.courses.length;c++){
- const p=E.createPlan(r,c),s=E.schedule(r,p);
- check(s.days.length===3,'exactly three days');
- check(s.days[0].blocks.find(b=>b.kind==='travel').from==='busan','Busan departure');
- const firstHotel=s.days[0].blocks.find(b=>b.kind==='hotel');
- check(firstHotel.start>=1200,'no Suncheon hotel detour before Yeosu tourism');
- check(s.days[0].blocks.some(b=>b.from==='ys_station'&&b.to==='sc_station'),'night transfer through correct train stations');
- check(s.days[2].blocks.some(b=>b.from==='sc_hub'&&b.to==='busan'),'return bus through correct terminals');
- check(s.returnMinute<=1080,'recommended plans arrive before 18:00 including delay');
- check(s.days[0].blocks.filter(b=>b.kind==='hotel').every(b=>b.poi===p.hotel)&&s.days[1].blocks.filter(b=>b.kind==='hotel').every(b=>b.poi===p.hotel),'same lodging both nights');
- check(!s.warnings.some(w=>/휴무와|마감.*보다|목표 출발/.test(w)),'sample does not violate known closures or transfers');
- for(const d of s.days)for(let i=1;i<d.blocks.length;i++)check(d.blocks[i].start>=d.blocks[i-1].end,'no overlapping blocks');
- const n=E.normalizePlan(r,p);check(JSON.stringify(n.items.map(d=>d.map(x=>x.poi)))===JSON.stringify(p.items.map(d=>d.map(x=>x.poi))),'saved route order preserved');
+const assert = require('node:assert/strict');
+const E = require('./engine');
+const r = require('./data.json')[0];
+const defaults = E.createPlan(r);
+const base = E.schedule(r, defaults);
+let scenarios = 0;
+const point = id => r.points.find(p => p.id === id);
+const clone = value => JSON.parse(JSON.stringify(value));
+function validate(p) {
+  const original = clone(p);
+  const result = E.schedule(r, p); scenarios++;
+  result.days.forEach((day, index) => {
+    let end = 0;
+    for (const b of day.blocks) {
+      assert(Number.isFinite(b.start) && Number.isFinite(b.end));
+      assert(b.start >= end && b.end >= b.start, 'chronological, non-overlapping blocks');
+      end = b.end;
+    }
+    const visits = day.blocks.filter(b => b.uid);
+    const fixed = r.itinerary.days[index].filter(b => ['visit', 'slot'].includes(b.kind));
+    assert.deepEqual(visits.map(b => b.uid), fixed.map(b => b.id), 'fixed order');
+    visits.forEach((b, i) => assert.equal(b.end - b.start, fixed[i].duration, 'dwell time preserved'));
+    const steps = result.steps.filter(s => s.day === index);
+    const pairs = steps.slice(1).flatMap((s, i) => steps[i].poi === s.poi ? [] : [[steps[i].poi, s.poi]]);
+    assert.deepEqual(result.edges.filter(e => e.day === index).map(e => [e.from,e.to]), pairs, 'map follows actual stops only');
+    for (const edge of result.edges.filter(e => e.day === index)) {
+      assert(point(edge.from) && point(edge.to));
+      assert(edge.minutes > 0 && edge.minutes % 10 === 0);
+    }
+  });
+  assert.deepEqual(p, original, 'schedule does not mutate choices');
+  return result;
 }
-const p=E.createPlan(r,3),get=id=>r.points.find(x=>x.id===id);
-check(E.isClosed(get('sc_garden'),2)&&E.isClosed(get('sc_wetland'),2),'last Monday closures');
-check(!E.isClosed(get('sc_garden'),1)&&!E.isClosed(get('sc_wetland'),1),'Sunday open by regular calendar');
-check(E.isClosed(get('sc_hwawol'),1)&&!E.isClosed(get('sc_hwawol'),2),'Sunday food closure');
-p.items[2]=[{uid:'closed',poi:'sc_garden',duration:60,start:null}];check(E.schedule(r,p).warnings.some(x=>x.includes('휴무와')),'date collision warns');
-p.items[2]=[];p.returnDeparture=990;check(E.schedule(r,p).warnings.some(x=>x.includes('18:00 목표')),'late return warns');
-p.returnDeparture=870;p.items[0]=[{uid:'long',poi:'ys_aquaplanet',duration:720,start:null}];check(E.schedule(r,p).warnings.some(x=>x.includes('목표 출발')),'missed night departure warns');
-p.items[0]=[];p.transferMode='bus';p.transferRide=54;p.transferDeparture=1245;
-check(E.schedule(r,p).days[0].blocks.some(b=>b.from==='ys_hub'&&b.to==='sc_hub'),'bus mode changes station endpoints');
-p.luggage=true;const bag=E.schedule(r,p);check(bag.days[0].blocks.some(b=>b.title==='여수터미널 맡긴 짐 찾기'),'luggage retrieval is scheduled');
-const item=id=>({uid:id,poi:id,duration:90,start:null});p.items[1]=[item('sc_garden'),item('sc_wetland')];p.items[0]=[];p.items[2]=[];
-check(E.schedule(r,p).costParts.tickets===20000,'garden/wetland admission not counted twice for two people');
-const a=get('ys_aquaplanet'),b=get('ys_goso');
-for(const mode of ['walk','transit','taxi','mixed'])check(Number.isFinite(E.travel(r,a,b,mode).minutes),'all travel modes estimated');
-check(E.travel(r,a,b,'transit',37).minutes===37,'manual transfer retained');
-const bad=E.normalizePlan(r,{...p,hotel:'not-a-hotel',returnRide:-20,mode:'unknown',items:[[item('<script>')],[],[]]});
-check(bad.hotel!=='not-a-hotel'&&bad.returnRide>=60&&bad.items[0].length===0,'import validates types and known places');
-check(new Set(r.points.map(p=>p.id)).size===r.points.length,'unique place identifiers');
-for(const q of r.points){check(q.coord.length===2&&q.coord.every(Number.isFinite),'coordinates present');if(q.type!=='transit')check(q.sources?.length>0&&q.desc&&q.costNote&&q.hours.note,'all 84 recommendations have supporting detail');}
-console.log(checks+' itinerary/data assertions passed. Timetables and availability are reference information.');
+validate(defaults);
+assert.equal(base.unselected.length, 8);
+assert.equal(base.hotel, 'ys_stay_shilla');
+assert.equal(base.days[0].blocks[0].start, 450);
+assert(base.steps.some(b => b.poi === 'busan_pickup' && b.day === 0 && b.start === 480));
+assert.equal(base.transferDeparture, 1040);
+assert.equal(base.returnDeparture, 810);
+assert.equal(base.pickupReturnMinute, 1000);
+assert.equal(base.returnMinute, 1030);
+assert(base.edges.some(e => e.from === 'sc_tteok' && e.to === 'sc_garden'));
+assert(base.edges.some(e => e.from === 'ys_odongdo' && e.to === 'busan_pickup'));
+assert(base.days.slice(1).every(d => d.blocks.find(b => b.slotId?.endsWith('breakfast')).start === 510));
+assert(!r.courses, 'single route has no alternatives');
+assert.equal(r.points.filter(p => p.type === 'hotel').length, 8);
+assert(r.points.filter(p => p.type === 'hotel').every(p => p.city === '여수'));
+assert.equal(new Set(r.points.map(p => p.id)).size, r.points.length);
+
+// Every offered choice must produce a coherent schedule, including outlying cafes.
+for (const s of E.slots(r)) for (const p of r.points.filter(p => E.eligible(r, s.id, p))) {
+  const plan = clone(defaults); plan.choices[s.id] = p.id;
+  const res = validate(plan);
+  assert.equal(res.days[s.day].blocks.find(b => b.slotId === s.id).poi, p.id);
+  assert(res.edges.some(e => e.day === s.day && e.to === p.id));
+  assert.equal(res.unselected.length, 7);
+}
+for (const hotel of r.points.filter(p => p.type === 'hotel')) {
+  const p = clone(defaults); p.hotel = hotel.id;
+  const result = validate(p);
+  assert(result.days.every(d => d.blocks.some(b => b.kind === 'hotel' && b.poi === hotel.id)));
+  assert(result.steps.filter(s => point(s.poi).type === 'hotel').every(s => s.poi === hotel.id));
+}
+const p = clone(defaults);
+p.choices['d0-lunch'] = 'sc_nanulteo';
+assert(point(p.choices['d0-lunch']), 'known lunch candidate');
+let result = validate(p);
+assert(!result.edges.some(e => e.from === 'sc_tteok' && e.to === 'sc_garden'));
+assert(result.edges.some(e => e.from === 'sc_tteok' && e.to === 'sc_nanulteo'));
+assert(result.edges.some(e => e.from === 'sc_nanulteo' && e.to === 'sc_garden'));
+p.choices['d0-lunch'] = 'sc_gunbong'; result = validate(p);
+assert(!result.edges.some(e => e.to === 'sc_nanulteo'));
+p.choices['d0-lunch'] = null;
+assert.deepEqual(validate(p), base, 'clearing choice restores exact baseline route/times');
+p.choices['d2-break'] = 'ys_goso'; result = validate(p);
+assert(result.edges.some(e => e.from === 'ys_odongdo' && e.to === 'ys_goso'));
+p.choices['d2-break'] = 'ys_moifin'; result = validate(p);
+assert(!result.steps.some(s => s.poi === 'ys_goso'), 'cafe replaces mural village');
+assert(result.returnDeparture > 810 && result.warnings.some(w => w.includes('13:30')));
+
+// Opening waits never silently trim the user's museum visits.
+const fixture = clone(r);
+fixture.points.find(p => p.id === 'ys_deokchung').hours = {open: 780, close: 1200};
+const late = E.createPlan(fixture); late.choices['d1-lunch'] = 'ys_deokchung';
+const lateResult = E.schedule(fixture, late);
+assert(lateResult.days[1].blocks.some(b => b.kind === 'wait' && b.title.includes('개장')));
+assert.equal(lateResult.days[1].blocks.find(b => b.poi === 'ys_arte' && b.kind === 'visit').duration, 90);
+assert(lateResult.warnings.some(w => w.includes('아르떼') && w.includes('마감')));
+fixture.points.find(p => p.id === 'ys_deokchung').hours.closedDays = [0];
+assert(E.schedule(fixture, late).warnings.some(w => w.includes('휴무')));
+
+const invalid = clone(defaults);
+invalid.hotel = 'sc_garden';
+invalid.choices['d0-lunch'] = 'ys_deokchung';
+invalid.choices['d2-break'] = 'ys_aquaplanet';
+invalid.choices['unknown'] = 'ys_goso';
+invalid.days = [{duration: 1}];
+assert.deepEqual(E.normalizePlan(r, invalid), defaults);
+for (const value of [null, {}, {version: 1}, {...defaults, choices: []}]) assert.throws(() => E.normalizePlan(r, value));
+assert(!E.eligible(r, 'd0-lunch', point('sc_tteok')));
+console.log(`${scenarios} schedule scenarios passed: all choices, fixed durations, route insertion/removal, hotels, opening waits, return targets, import validation.`);
