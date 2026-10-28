@@ -15,6 +15,7 @@ const selected=d=>[...d.querySelectorAll('[data-slot-value]')].map(e=>[e.dataset
 const route=(d,a,b)=>!!d.querySelector(`[data-route-from="${a}"][data-route-to="${b}"]`);
 const ratios=d=>d.querySelector('#main').dataset.paneSizes.split(',').map(Number);
 const near=(a,b)=>Math.abs(a-b)<.003;
+async function waitUntil(fn){const deadline=performance.now()+2000;while(!fn()&&performance.now()<deadline)await tick();}
 function change(d,s,v){const el=d.querySelector(s);el.value=v;el.dispatchEvent(new d.defaultView.Event('change',{bubbles:true}));}
 function keypress(d,s,key,shift=false){d.querySelector(s).dispatchEvent(new d.defaultView.KeyboardEvent('keydown',{key,shiftKey:shift,bubbles:true,cancelable:true}));}
 async function load(w,h,clear=true){
@@ -33,8 +34,11 @@ function startDivider(d,index,type='touch'){
 }
 async function layoutSuite(w,h){
  let d=await load(w,h);const isPhone=phone(w,h),rows=!isPhone&&h>=w;
- log(d.querySelectorAll('[data-pin]').length===65,'all candidates + 2 neighborhood origin pins exist');
- log([...d.querySelectorAll('[data-pin]:not([data-type=origin])')].every(p=>!p.hidden),'initial map fits every candidate even in portrait rows');
+ log(d.querySelectorAll('[data-pin]').length===70,'all candidates + 2 neighborhood origin pins exist');
+ log([...d.querySelectorAll('[data-pin]:not([data-type=origin])')].every(p=>!p.hidden),'all Leaflet markers are retained');
+ const candidatePin=d.querySelector('.place-pin.pin-candidate'),pinStyle=d.defaultView.getComputedStyle(candidatePin);log(pinStyle.padding==='0px'&&pinStyle.borderWidth==='0px','candidate marker does not inherit place-card borders or scrolling');
+ log(d.querySelector('#mapCanvas').dataset.tiles==='test'&&!d.querySelector('.leaflet-tile'),'automated QA does not fetch external tiles');
+ log([...d.querySelectorAll('[data-category]')].map(b=>b.textContent).join('/')==='전체/식당/카페/관광·숙소','four requested category tabs');
  log(!d.querySelector('[data-course]')&&!d.querySelector('[data-time-part]'),'course selector and timeline editing removed');
  const header=rect(d,'#appHeader'),map=rect(d,'.map-frame'),places=rect(d,'#candidatePanel'),schedule=rect(d,'#planner');
  log(header.height<=50,'compact header');
@@ -62,66 +66,72 @@ async function layoutSuite(w,h){
  }
  click(d,'#pane-schedule');
  log(rect(d,'#planner').width<=w&&rect(d,'#scheduleScroll').height>=80,'schedule tab remains usable');
- log(d.querySelector('[data-block="d0-lunch"]').dataset.slotValue==='','initial meal is unselected');
- click(d,'[data-slot="d0-lunch"]');
- log(d.querySelector('#activeSlot').value==='d0-lunch','meal click selects matching candidate tab');
+ log(d.querySelector('[data-block="d0-bakery"]').dataset.slotValue==='','initial meal is unselected');
+ click(d,'[data-slot="d0-bakery"]');
+ log(d.querySelector('#activeSlot').value==='d0-bakery','meal click selects matching candidate tab');
  log([...d.querySelectorAll('[data-card]')].every(e=>e.textContent.includes('순천')),'lunch list contains Suncheon choices');
- log(d.querySelectorAll('[data-pin]').length===65,'list filters do not remove map candidates');
- click(d,'[data-use="sc_nanulteo"]');
- log(route(d,'sc_tteok','sc_nanulteo')&&route(d,'sc_nanulteo','sc_garden')&&!route(d,'sc_tteok','sc_garden'),'choice inserts restaurant into route');
- click(d,'#pane-schedule');
- const lunch=d.querySelector('[data-block="d0-lunch"]');
- log(lunch.dataset.slotValue==='sc_nanulteo'&&Number(lunch.dataset.end)-Number(lunch.dataset.start)===90,'selected lunch retains ninety minutes');
+ log(d.querySelectorAll('[data-pin]').length===70,'list filters do not remove map candidates');
+ click(d,'[data-use="sc_goodies"]');
+ log(route(d,'sc_tteok','sc_goodies')&&route(d,'sc_goodies','sc_garden')&&!route(d,'sc_tteok','sc_garden'),'choice inserts restaurant into route');
+ click(d,'#pane-schedule');click(d,'.transfer button');
+ const nav=d.querySelector('#dialogBody a[href^="nmap://"]');log(!!nav&&nav.href.includes('appname=')&&!d.querySelector('#dialogBody a[href*="kakao"]'),'navigation links use Naver app and web only');click(d,'#closeDialog');
+ const lunch=d.querySelector('[data-block="d0-bakery"]');
+ log(lunch.dataset.slotValue==='sc_goodies'&&Number(lunch.dataset.end)-Number(lunch.dataset.start)===40,'selected bakery retains forty minutes');
  click(d,'[data-action="undo"]');log(route(d,'sc_tteok','sc_garden'),'undo restores direct route');
- click(d,'[data-action="redo"]');log(route(d,'sc_tteok','sc_nanulteo'),'redo restores selection');
- click(d,'[data-slot="d0-lunch"]');click(d,'[data-use="sc_gunbong"]');
- log(route(d,'sc_tteok','sc_gunbong')&&!route(d,'sc_tteok','sc_nanulteo'),'replacement removes previous restaurant route');
- click(d,'#pane-schedule');click(d,'[data-clear-slot="d0-lunch"]');
+ click(d,'[data-action="redo"]');log(route(d,'sc_tteok','sc_goodies'),'redo restores selection');
+ click(d,'[data-slot="d0-bakery"]');click(d,'[data-use="sc_hwawol"]');
+ log(route(d,'sc_tteok','sc_hwawol')&&!route(d,'sc_tteok','sc_goodies'),'replacement removes previous restaurant route');
+ click(d,'#pane-schedule');click(d,'[data-clear-slot="d0-bakery"]');
  log(route(d,'sc_tteok','sc_garden'),'clear removes detour');
  // Default 24-hour view is read-only and always fits its available width.
  click(d,'[data-view="timeline"]');
  log(!!d.querySelector('.time-block')&&!d.querySelector('[data-time-part]'),'24-hour chart is read-only');
  log(d.documentElement.scrollWidth<=w+1,'24-hour chart has no page overflow');
  click(d,'[data-view="sequence"]');
- click(d,'#pane-places');change(d,'#activeSlot','hotel');click(d,'[data-use="ys_stay_sono"]');
- log(d.querySelector('[data-pin="ys_stay_sono"]').classList.contains('layer-selected'),'hotel selection updates map');
- log(![...d.querySelectorAll('[data-route-to]')].some(e=>e.dataset.routeTo==='ys_stay_shilla'),'old hotel removed from every route');
+ log(![...d.querySelectorAll('#activeSlot option')].some(e=>e.value==='hotel'),'hotel cannot be changed');
+ log(d.querySelector('[data-pin="ys_stay_venezia"]').classList.contains('selected'),'fixed Venezia hotel highlighted');
  click(d,'#pane-schedule');click(d,'#planner [data-day="2"]');
- click(d,'[data-slot="d2-break"]');click(d,'[data-use="ys_goso"]');
- log(route(d,'ys_odongdo','ys_goso'),'optional mural village in day three route');
+ log(d.querySelectorAll('.agenda-event.reststop').length===1&&!d.querySelector('[data-block="d2-lunch"]'),'road lunch only has one rest stop');
+ click(d,'[data-lunch-mode="nearby"]');click(d,'[data-use="ys_myeongdong"]');click(d,'#pane-schedule');
+ log(route(d,'ys_odongdo','ys_myeongdong')&&!d.querySelector('.agenda-event.reststop'),'local lunch replaces road stop');
+ click(d,'[data-lunch-mode="road"]');
+ log(!route(d,'ys_odongdo','ys_myeongdong')&&d.querySelectorAll('.agenda-event.reststop').length===1,'road mode removes restaurant detour');
+ log(d.querySelector('[data-pin="ys_odongdo"] .place-dot').textContent==='2','day-three map numbering follows current day');
+ click(d,'[data-slot="d2-break"]');click(d,'[data-use="ys_yeosudang"]');
+ log(route(d,'ys_odongdo','ys_yeosudang'),'bakery in day three route');
  click(d,'#pane-schedule');click(d,'[data-slot="d2-break"]');click(d,'[data-use="ys_moifin"]');
- log(route(d,'ys_odongdo','ys_moifin')&&!route(d,'ys_odongdo','ys_goso'),'cafe replaces mural village');
+ log(route(d,'ys_odongdo','ys_moifin')&&!route(d,'ys_odongdo','ys_yeosudang'),'cafe replaces bakery');
  d=await load(w,h,false);click(d,'#pane-schedule');click(d,'#planner [data-day="2"]');
- log(d.querySelector('[data-block="d2-break"]').dataset.slotValue==='ys_moifin'&&d.querySelector('[data-pin="ys_stay_sono"]').classList.contains('layer-selected'),'reload retains cafe and hotel choices');
+ log(d.querySelector('[data-block="d2-break"]').dataset.slotValue==='ys_moifin'&&d.querySelector('[data-pin="ys_stay_venezia"]').classList.contains('selected'),'reload retains cafe and hotel choices');
  click(d,'[data-action="schedule-info"]');const dialog=rect(d,'#dialog');
  log(dialog.width<=w&&dialog.height<=h,'warning dialog fits viewport');
- log(d.querySelector('#dialogBody').textContent.includes('13:30'),'late-return warning is visible');click(d,'#closeDialog');
- click(d,'#pane-places');change(d,'#activeSlot','');click(d,'[data-category="hotel"]');click(d,'[data-detail="ys_stay_sono"]');
- log(d.querySelector('#detailBody').textContent.includes('욕조'),'room detail includes bath conditions');
+ log(d.querySelector('#dialogBody').textContent.includes('휴게소 식사 30분'),'return lunch explanation is visible');click(d,'#closeDialog');
+ click(d,'#pane-places');change(d,'#activeSlot','');click(d,'[data-category="fixed"]');click(d,'[data-detail="ys_stay_venezia"]');
+ log(d.querySelector('#detailBody').textContent.includes('확정 숙소'),'hotel detail is fixed');
  const detail=rect(d,'#detail');log(detail.width<=w&&detail.height<=h,'place detail fits viewport');click(d,'#closeDetail');
  click(d,'#pane-map');click(d,'#mapPlay');await tick();
  log(d.querySelector('#mapPlay').getAttribute('aria-pressed')==='true'&&!d.querySelector('#playCaption').hidden,'route animation starts');
  click(d,'#mapPlay');log(d.querySelector('#mapPlay').getAttribute('aria-pressed')==='false','animation pauses');
- click(d,'#arrivalReplay');log(!d.querySelector('#skipArrival').hidden&&d.querySelector('#playCaption').textContent.includes('대연동'),'Busan departure playback retained');
+ click(d,'#arrivalReplay');await tick();log(!d.querySelector('#skipArrival').hidden&&d.querySelector('#playCaption').textContent.includes('대연동'),'Busan departure playback retained');
  click(d,'#skipArrival');
  output.textContent+=`PASS completed ${w} × ${h}\n`;
 }
 async function rotationSuite(w,h){
  let d=await load(w,h);click(d,'#planner [data-day="1"]');
  const drag=startDivider(d,0);drag.move(20);drag.end();const before=ratios(d);
- frame.width=h;frame.height=w;await tick();await tick();
+ frame.width=h;frame.height=w;await waitUntil(()=>d.querySelector('#main').dataset.layout==='columns'&&d.defaultView.innerWidth===h);await tick();
  log(d.querySelector('#main').dataset.layout==='columns'&&d.querySelector('#main').dataset.pane==='split','tablet rotation uses columns');
  log(d.querySelector('#planner [data-day="1"]').getAttribute('aria-pressed')==='true','rotation retains day');
  log(ratios(d).every((v,i)=>near(v,[.5,.25,.25][i])),'independent landscape default sizes');
- frame.width=w;frame.height=h;await tick();await tick();
- log(d.querySelector('#main').dataset.layout==='rows'&&ratios(d).every((v,i)=>near(v,before[i])),'rotation back restores in-session portrait proportions');
+ frame.width=w;frame.height=h;await waitUntil(()=>d.querySelector('#main').dataset.layout==='rows'&&d.defaultView.innerWidth===w);await tick();
+ log(d.querySelector('#main').dataset.layout==='rows'&&ratios(d).every((v,i)=>near(v,before[i])),'rotation back restores portrait proportions: '+JSON.stringify({actual:ratios(d),expected:before,layout:d.querySelector('#main').dataset.layout}));
 }
 async function sharingSuite(){
- const d=await load(1280,800);click(d,'[data-slot="d0-lunch"]');click(d,'[data-use="sc_nanulteo"]');
+ const d=await load(1280,800);click(d,'[data-slot="d0-bakery"]');click(d,'[data-use="sc_goodies"]');
  const current=localStorage.getItem(key),encoded=btoa(unescape(encodeURIComponent(current))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
  localStorage.removeItem(key);
  await new Promise(resolve=>{frame.onload=resolve;frame.src='./index.html?trip-test=1&qa=share#plan='+encoded;});await tick();
- const doc=frame.contentDocument;log(route(doc,'sc_tteok','sc_nanulteo'),'shared selection URL restores detour');
+ const doc=frame.contentDocument;log(route(doc,'sc_tteok','sc_goodies'),'shared selection URL restores detour');
  log(!doc.location.hash,'shared URL is consumed after import');
 }
 document.querySelector('#open').onclick=async()=>{const[w,h]=document.querySelector('#size').value.split(' × ').map(Number);await load(w,h);status.textContent=w+' × '+h;};

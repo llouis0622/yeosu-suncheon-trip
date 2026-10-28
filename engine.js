@@ -21,19 +21,22 @@ function travel(r,a,b,mode='car') {
  const distance=km(a,b), routeMode=mode==='walk'?'walk':'road', rec=r.routes?.[key+':'+routeMode];
  if(rec?.status==='ok' && (!rec.fromCoord || km(a,{coord:rec.fromCoord})<.05) && (!rec.toCoord || km(b,{coord:rec.toCoord})<.05)) {
   const access=(a.roadAccessMinutes||0)+(b.roadAccessMinutes||0), raw=Math.ceil(rec.seconds/60);
-  return {minutes:round10(raw+(mode==='walk'?0:10)+access),mode,verified:true,checkedAt:rec.checkedAt,sourceUrl:rec.sourceUrl,note:'기존 카카오 경로 조회 '+raw+'분에 주차·승하차·출입구 이동 여유를 더한 계획치입니다. 실시간 교통이 아닙니다.'};
+  return {minutes:round10(raw+(mode==='walk'?0:10)+access),mode,verified:true,checkedAt:rec.checkedAt,sourceUrl:rec.sourceUrl,note:'기존 경로 조회 '+raw+'분에 주차·승하차·출입구 이동 여유를 더한 계획치입니다. 실시간 교통이 아닙니다.'};
  }
  if(distance<.65 && !a.hill && !b.hill) return {minutes:round10(Math.max(10,distance*1.35/4*60)),mode:'walk',estimate:true,note:'가까운 두 장소를 도보로 연결한 거리 기반 추정입니다.'};
  return {minutes:round10(Math.max(10,distance*1.6/(distance>15?45:30)*60+10+(a.roadAccessMinutes||0)+(b.roadAccessMinutes||0))),mode:'car',estimate:true,note:'좌표 거리·도로 우회·주차 여유를 반영한 추정입니다. 실제 도로 경로는 길찾기에서 확인할 수 있습니다.'};
 }
 function slots(r) { return r.itinerary.days.flatMap((d,day)=>d.filter(x=>x.kind==='slot').map(x=>({...x,day}))); }
-function eligible(r,slotId,p) { const s=slots(r).find(x=>x.id===slotId); return Boolean(s&&p&&p.city===s.city&&(s.types.includes(p.type)||s.allow?.includes(p.id))&&!p.fixedOnly); }
-function createPlan(r) { return {version:4,region:r.id,hotel:r.itinerary.defaultHotel,choices:Object.fromEntries(slots(r).map(s=>[s.id,null])),mode:'car'}; }
+function eligible(r,slotId,p) {
+ const s=slots(r).find(x=>x.id===slotId);
+ return Boolean(s&&p&&p.city===s.city&&!p.fixedOnly&&(s.only?s.only.includes(p.id):(s.types.includes(p.type)||s.allow?.includes(p.id))));
+}
+function createPlan(r) { return {version:5,region:r.id,hotel:r.itinerary.defaultHotel,choices:Object.fromEntries(slots(r).map(s=>[s.id,null])),lunchMode:'road',mode:'car'}; }
 function normalizePlan(r,input) {
- if(!input || input.version!==4 || input.region!==r.id || !input.choices || typeof input.choices!=='object' || Array.isArray(input.choices)) throw Error('이 확정 일정의 선택 정보가 아닙니다.');
+ if(!input || ![4,5].includes(input.version) || input.region!==r.id || !input.choices || typeof input.choices!=='object' || Array.isArray(input.choices)) throw Error('이 여행 일정의 선택 정보가 아닙니다.');
  const p=createPlan(r);
- if(r.points.some(x=>x.id===input.hotel&&x.type==='hotel'&&x.city==='여수')) p.hotel=input.hotel;
  for(const s of slots(r)) { const q=r.points.find(x=>x.id===input.choices[s.id]); if(eligible(r,s.id,q)) p.choices[s.id]=q.id; }
+ p.lunchMode=input.version===4?(p.choices['d2-lunch']?'nearby':'road'):input.lunchMode==='nearby'?'nearby':'road';
  return p;
 }
 function schedule(r,input) {
@@ -46,12 +49,18 @@ function schedule(r,input) {
   if(point && kind!=='travel' && kind!=='wait') out.steps.push({day:d.day,poi:point.id,start,end,kind,uid:extra.uid});
   return b;
  }
- function leg(d,a,b,t) {
+ function leg(d,a,b,t,restMinutes=0) {
   if(!a||!b||a.id===b.id) return t;
-  const v=travel(r,a,b);
-  add(d,'travel',t,t+v.minutes,b,a.name+' → '+b.name,{...v,from:a.id,to:b.id});
-  out.edges.push({from:a.id,to:b.id,day:d.day,mode:v.mode,minutes:v.minutes});d.travelMin+=v.minutes;
-  return t+v.minutes;
+  const v=travel(r,a,b), title=a.name+' → '+b.name;
+  if(restMinutes) {
+   const first=Math.min(90,round10(v.minutes/2));
+   add(d,'travel',t,t+first,b,title,{...v,minutes:first,from:a.id,to:b.id,segmentTitle:'부산 방향 · 휴게소 이전 구간'});
+   add(d,'reststop',t+first,t+first+restMinutes,null,'휴게소 점심 · 위치는 당일 선택',{duration:restMinutes});
+   add(d,'travel',t+first+restMinutes,t+v.minutes+restMinutes,b,title,{...v,minutes:v.minutes-first,from:a.id,to:b.id,segmentTitle:'휴게소 이후 · 당감동'});
+   d.visitMin+=restMinutes;
+  } else add(d,'travel',t,t+v.minutes,b,title,{...v,from:a.id,to:b.id});
+  out.edges.push({from:a.id,to:b.id,day:d.day,mode:v.mode,minutes:v.minutes,restMinutes});d.travelMin+=v.minutes;
+  return t+v.minutes+restMinutes;
  }
  function visit(d,q,t,minutes,title,extra={}) {
   if(q) {
@@ -66,13 +75,11 @@ function schedule(r,input) {
  }
  for(let day=0;day<3;day++) {
   const d={day,blocks:[],warnings:[],travelMin:0,visitMin:0,unselected:[]};out.days.push(d);
-  let prev=day===0?origin(r):hotel, t=day===0?450:510;
+  let prev=day===0?origin(r):hotel, t=r.itinerary.morningDepartures[day];
   if(day===0) add(d,'origin',450,450,prev,'대연동 출발 · 07:30');
-  else {
-   const breakfast=lookup(p.choices['d'+day+'-breakfast']), drive=breakfast?travel(r,hotel,breakfast).minutes:0;
-   t=Math.max(0,510-drive); add(d,'hotel',0,t,hotel,'여수 숙박 · 아침 준비');
-  }
+  else add(d,'hotel',0,t,hotel,'숙소에서 휴식 · 아침은 간단히 또는 생략');
   for(const item of r.itinerary.days[day]) {
+   if(item.conditional&&item.conditional!==p.lunchMode)continue;
    if(item.kind==='pickup') {
     const q=lookup(item.poi);t=leg(d,prev,q,t);add(d,'origin',t,t,q,'민지 픽업 · 순천으로 출발');prev=q;continue;
    }
@@ -92,12 +99,11 @@ function schedule(r,input) {
    t=visit(d,q,t,item.duration,q?.name||item.title+' · 장소 미선택',{uid:item.id,slotId:item.kind==='slot'?item.id:null,fixed:item.kind!=='slot',slotTitle:item.title});
   }
   if(day<2) {
-   t=leg(d,prev,hotel,t);d.finish=t;add(d,'hotel',t,Math.max(1440,t),hotel,'숙소 · 휴식과 가볍게 한잔');
+   t=leg(d,prev,hotel,t);d.finish=t;add(d,'hotel',t,Math.max(1440,t),hotel,'숙소에서 쉬기');
   } else {
-   if(t<810) {add(d,'wait',t,810,null,'부산 출발 전 여유');t=810;}
    out.returnDeparture=t;
    if(t>810)warn(d,'여수 출발 '+time(t)+' · 13:30 목표보다 '+(t-810)+'분 늦습니다.');
-   const pickup=lookup('busan_pickup');t=leg(d,prev,pickup,t);out.pickupReturnMinute=t;
+   const pickup=lookup('busan_pickup');t=leg(d,prev,pickup,t,p.lunchMode==='road'?30:0);out.pickupReturnMinute=t;
    add(d,'origin',t,t,pickup,'당감동 도착');t=leg(d,pickup,origin(r),t);
    add(d,'origin',t,t,origin(r),'대연동 도착');out.returnMinute=t;d.finish=t;
    if(t>1080)warn(d,'대연동 도착 '+time(t)+' · 18시 목표보다 '+(t-1080)+'분 늦습니다.');

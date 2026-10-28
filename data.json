@@ -61,7 +61,8 @@
         "aquarium": false,
         "cost": 0,
         "roadAccessMinutes": 10,
-        "mapUrl": "https://map.naver.com/p/search/오동도"
+        "mapUrl": "https://map.naver.com/p/search/오동도",
+        "savedByUser": true
       },
       {
         "id": "ys_aquaplanet",
@@ -126,61 +127,8 @@
         "aquarium": true,
         "cost": 37900,
         "complex": "expo",
-        "mapUrl": "https://map.naver.com/p/search/아쿠아플라넷 여수"
-      },
-      {
-        "id": "ys_goso",
-        "name": "고소동 천사벽화마을",
-        "city": "여수",
-        "category": "attraction",
-        "area": "고소동·종포",
-        "lat": 34.739034277098646,
-        "lng": 127.74118276472088,
-        "coordinateNote": "기존 사이트의 카카오 장소 좌표 재사용. 실제 출입구는 길찾기에서 확인.",
-        "address": "전남 여수시 고소동 268 일대",
-        "minMinutes": 35,
-        "maxMinutes": 100,
-        "priceNote": "골목 산책 무료. 카페 주문 별도.",
-        "hoursNote": "야외 골목. 밝을 때 산책 권장, 주민 거주지 정숙.",
-        "closedDays": [],
-        "tags": [
-          "골목",
-          "사진",
-          "전망",
-          "카페 연계"
-        ],
-        "accessNote": "계단과 경사가 있어 짐을 든 채 오래 걷기엔 불편합니다.",
-        "sources": [
-          {
-            "title": "여수시 고소천사벽화마을",
-            "url": "https://www.yeosu.go.kr/tour/leisure/walk/goso_angel"
-          }
-        ],
-        "verifiedDate": "2026-10-25",
-        "coord": [
-          127.74118276472088,
-          34.739034277098646
-        ],
-        "coordStatus": "기존 사이트의 카카오 장소 좌표 재사용. 실제 출입구는 길찾기에서 확인.",
-        "type": "sight",
-        "desc": "언덕 골목의 벽화와 바다 전망을 함께 보는 산책 코스. 전망 카페 한 곳과 이어서 머물기 좋습니다.",
-        "visitMin": 60,
-        "costNote": "골목 산책 무료. 카페 주문 별도.",
-        "links": [
-          {
-            "label": "여수시 고소천사벽화마을",
-            "url": "https://www.yeosu.go.kr/tour/leisure/walk/goso_angel"
-          }
-        ],
-        "hours": {
-          "note": "야외 골목. 밝을 때 산책 권장, 주민 거주지 정숙.",
-          "closedDays": [],
-          "closedDates": []
-        },
-        "aquarium": false,
-        "cost": 0,
-        "hill": true,
-        "mapUrl": "https://map.naver.com/p/search/고소동 천사벽화마을"
+        "mapUrl": "https://map.naver.com/p/search/아쿠아플라넷 여수",
+        "savedByUser": true
       },
       {
         "id": "ys_arte",
@@ -238,7 +186,8 @@
         "aquarium": false,
         "cost": 19000,
         "complex": "expo",
-        "mapUrl": "https://map.naver.com/p/search/아르떼뮤지엄 여수"
+        "mapUrl": "https://map.naver.com/p/search/아르떼뮤지엄 여수",
+        "savedByUser": true
       },
       {
         "id": "ys_moifin",
@@ -299,7 +248,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/모이핀 오션점"
+        "mapUrl": "https://map.naver.com/p/search/모이핀 오션점",
+        "savedByUser": false
       },
       {
         "id": "ys_rafik",
@@ -360,7 +310,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/카페 라피끄"
+        "mapUrl": "https://map.naver.com/p/search/카페 라피끄",
+        "savedByUser": false
       },
       {
         "id": "ys_nangman",
@@ -413,7 +364,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/낭만카페"
+        "mapUrl": "https://map.naver.com/p/search/낭만카페",
+        "savedByUser": false
       },
       {
         "id": "ys_cafefor",
@@ -472,7 +424,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/카페 포"
+        "mapUrl": "https://map.naver.com/p/search/카페 포",
+        "savedByUser": false
       },
       {
         "id": "ys_duu",
@@ -530,7 +483,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/카페듀"
+        "mapUrl": "https://map.naver.com/p/search/카페듀",
+        "savedByUser": false
       },
       {
         "id": "ys_mongdol",
@@ -582,7 +536,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/카페드몽돌"
+        "mapUrl": "https://map.naver.com/p/search/카페드몽돌",
+        "savedByUser": false
       },
       {
         "id": "ys_promenade",
@@ -650,7 +605,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/프롬나드"
+        "mapUrl": "https://map.naver.com/p/search/프롬나드",
+        "savedByUser": false
       },
       {
         "id": "ys_jonghwacafe",
@@ -704,7 +660,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/여수카페종화동"
+        "mapUrl": "https://map.naver.com/p/search/여수카페종화동",
+        "savedByUser": false
       },
       {
         "id": "ys_flowercrab",
@@ -764,7 +721,8 @@
         },
         "aquarium": false,
         "cost": 35000,
-        "mapUrl": "https://map.naver.com/p/search/꽃돌게장1번가"
+        "mapUrl": "https://map.naver.com/p/search/꽃돌게장1번가",
+        "savedByUser": true
       },
       {
         "id": "ys_dukkeobi",
@@ -824,7 +782,8 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/두꺼비게장"
+        "mapUrl": "https://map.naver.com/p/search/두꺼비게장",
+        "savedByUser": true
       },
       {
         "id": "ys_myeongdong",
@@ -876,7 +835,8 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/명동게장"
+        "mapUrl": "https://map.naver.com/p/search/명동게장",
+        "savedByUser": true
       },
       {
         "id": "ys_rotary",
@@ -928,7 +888,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/로타리식당"
+        "mapUrl": "https://map.naver.com/p/search/로타리식당",
+        "savedByUser": false
       },
       {
         "id": "ys_samhak",
@@ -988,7 +949,8 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/삼학집"
+        "mapUrl": "https://map.naver.com/p/search/삼학집",
+        "savedByUser": true
       },
       {
         "id": "ys_bokchun",
@@ -1057,7 +1019,8 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/복춘식당"
+        "mapUrl": "https://map.naver.com/p/search/복춘식당",
+        "savedByUser": false
       },
       {
         "id": "ys_badagimbap",
@@ -1119,13 +1082,14 @@
         },
         "aquarium": false,
         "cost": 10000,
-        "mapUrl": "https://map.naver.com/p/search/바다김밥 중앙본점"
+        "mapUrl": "https://map.naver.com/p/search/바다김밥 중앙본점",
+        "savedByUser": true
       },
       {
         "id": "ys_yeosudang",
         "name": "여수당",
         "city": "여수",
-        "category": "food",
+        "category": "cafe",
         "area": "이순신광장·중앙동",
         "lat": 34.73989892574248,
         "lng": 127.73534852194733,
@@ -1154,7 +1118,7 @@
           34.73989892574248
         ],
         "coordStatus": "기존 사이트의 카카오 장소 좌표 재사용. 실제 출입구는 길찾기에서 확인.",
-        "type": "food",
+        "type": "cafe",
         "desc": "쑥 아이스크림과 바게트버거 등 여수 간식을 고르는 곳. 이순신광장 산책 중 짧게 들르기 좋습니다.",
         "visitMin": 25,
         "costNote": "아이스크림·버거 개별 주문. 2인 간식 약 1–2만 원 예산(계획용 추정).",
@@ -1171,7 +1135,8 @@
         },
         "aquarium": false,
         "cost": 10000,
-        "mapUrl": "https://map.naver.com/p/search/여수당"
+        "mapUrl": "https://map.naver.com/p/search/여수당",
+        "savedByUser": true
       },
       {
         "id": "ys_burger",
@@ -1224,7 +1189,8 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/이순신수제버거"
+        "mapUrl": "https://map.naver.com/p/search/이순신수제버거",
+        "savedByUser": true
       },
       {
         "id": "ys_najin",
@@ -1284,7 +1250,8 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/나진국밥 본점"
+        "mapUrl": "https://map.naver.com/p/search/나진국밥 본점",
+        "savedByUser": false
       },
       {
         "id": "ys_dolmuneo",
@@ -1336,13 +1303,14 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/돌문어상회"
+        "mapUrl": "https://map.naver.com/p/search/돌문어상회",
+        "savedByUser": true
       },
       {
         "id": "ys_jwasuyeong",
         "name": "좌수영바게트버거",
         "city": "여수",
-        "category": "food",
+        "category": "cafe",
         "area": "이순신광장·중앙동",
         "lat": 34.7408,
         "lng": 127.7359,
@@ -1375,7 +1343,7 @@
           34.7408
         ],
         "coordStatus": "대략적 지도 표시용 위치(좌표 미검증). 실제 장소·출입구는 주소와 길찾기로 확인.",
-        "type": "food",
+        "type": "cafe",
         "desc": "바게트버거와 쑥 디저트를 고르는 간식 후보. 진남관과 이순신광장 사이에서 동선에 맞춰 들르기 좋습니다.",
         "visitMin": 30,
         "costNote": "단품·세트별 상이. 2인 간식 약 1–2만 원 예산(계획용 추정).",
@@ -1396,7 +1364,8 @@
         },
         "aquarium": false,
         "cost": 10000,
-        "mapUrl": "https://map.naver.com/p/search/좌수영바게트버거"
+        "mapUrl": "https://map.naver.com/p/search/좌수영바게트버거",
+        "savedByUser": true
       },
       {
         "id": "sc_garden",
@@ -1466,7 +1435,8 @@
         "aquarium": false,
         "ticketGroup": "garden-wetland",
         "cost": 10000,
-        "mapUrl": "https://map.naver.com/p/search/순천만국가정원"
+        "mapUrl": "https://map.naver.com/p/search/순천만국가정원",
+        "savedByUser": true
       },
       {
         "id": "sc_drama",
@@ -1520,7 +1490,8 @@
           "close": 1080
         },
         "aquarium": false,
-        "mapUrl": "https://map.naver.com/p/search/순천드라마촬영장"
+        "mapUrl": "https://map.naver.com/p/search/순천드라마촬영장",
+        "savedByUser": true
       },
       {
         "id": "sc_brewworks",
@@ -1576,7 +1547,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/브루웍스"
+        "mapUrl": "https://map.naver.com/p/search/브루웍스",
+        "savedByUser": false
       },
       {
         "id": "sc_memory",
@@ -1636,7 +1608,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/기억공장1945"
+        "mapUrl": "https://map.naver.com/p/search/기억공장1945",
+        "savedByUser": false
       },
       {
         "id": "sc_gijeok",
@@ -1689,7 +1662,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/카페 기적소리"
+        "mapUrl": "https://map.naver.com/p/search/카페 기적소리",
+        "savedByUser": false
       },
       {
         "id": "sc_cafewaon",
@@ -1752,7 +1726,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/카페와온"
+        "mapUrl": "https://map.naver.com/p/search/카페와온",
+        "savedByUser": false
       },
       {
         "id": "sc_lajoel",
@@ -1817,7 +1792,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/와온카페 라조엘"
+        "mapUrl": "https://map.naver.com/p/search/와온카페 라조엘",
+        "savedByUser": false
       },
       {
         "id": "sc_overlap",
@@ -1872,7 +1848,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/오버랩 순천중앙점"
+        "mapUrl": "https://map.naver.com/p/search/오버랩 순천중앙점",
+        "savedByUser": false
       },
       {
         "id": "sc_cafe487",
@@ -1933,7 +1910,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/순천만487"
+        "mapUrl": "https://map.naver.com/p/search/순천만487",
+        "savedByUser": false
       },
       {
         "id": "sc_invert",
@@ -1996,7 +1974,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/인버트 커피랩"
+        "mapUrl": "https://map.naver.com/p/search/인버트 커피랩",
+        "savedByUser": false
       },
       {
         "id": "sc_benisharp",
@@ -2059,7 +2038,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/베니샤프커피 본점"
+        "mapUrl": "https://map.naver.com/p/search/베니샤프커피 본점",
+        "savedByUser": false
       },
       {
         "id": "sc_gunbong",
@@ -2112,7 +2092,8 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/건봉국밥"
+        "mapUrl": "https://map.naver.com/p/search/건봉국밥",
+        "savedByUser": true
       },
       {
         "id": "sc_nanulteo",
@@ -2173,7 +2154,8 @@
         },
         "aquarium": false,
         "cost": 12000,
-        "mapUrl": "https://map.naver.com/p/search/나눌터"
+        "mapUrl": "https://map.naver.com/p/search/나눌터",
+        "savedByUser": true
       },
       {
         "id": "sc_daewon",
@@ -2225,7 +2207,8 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/대원식당"
+        "mapUrl": "https://map.naver.com/p/search/대원식당",
+        "savedByUser": true
       },
       {
         "id": "sc_geumbin",
@@ -2284,7 +2267,8 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/금빈회관"
+        "mapUrl": "https://map.naver.com/p/search/금빈회관",
+        "savedByUser": true
       },
       {
         "id": "sc_pungmi",
@@ -2347,13 +2331,14 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/풍미통닭"
+        "mapUrl": "https://map.naver.com/p/search/풍미통닭",
+        "savedByUser": true
       },
       {
         "id": "sc_hwawol",
         "name": "화월당",
         "city": "순천",
-        "category": "food",
+        "category": "cafe",
         "area": "원도심",
         "lat": 34.9526,
         "lng": 127.4853,
@@ -2375,7 +2360,7 @@
           "기념품",
           "11/29 휴무"
         ],
-        "accessNote": "11/30에 픽업하는 편이 맞습니다. 냉장·냉동 보관 안내를 받아 부산 이동에 맞춰 포장하세요.",
+        "accessNote": "11/28 토요일 방문 후보입니다. 포장한 떡과 빵의 보관 방법·품절 여부를 확인하세요.",
         "sources": [
           {
             "title": "화월당 최근 매장정보",
@@ -2392,8 +2377,8 @@
           34.9526
         ],
         "coordStatus": "주소와 권역에 기반한 대략 위치입니다. 방문 전 지도 길찾기로 실제 입구를 확인하세요.",
-        "type": "food",
-        "desc": "볼카스테라와 찹쌀떡을 포장하는 오래된 과자점입니다. 돌아가는 날 간식이나 선물로 고르기 좋습니다.",
+        "type": "cafe",
+        "desc": "볼카스테라와 찹쌀떡을 포장하는 오래된 과자점. 첫날 구디스파이와 비교해 한 곳을 고릅니다.",
         "visitMin": 20,
         "costNote": "최근 매장정보 볼카스테라2,100원·찹쌀떡1,500원, 세트 가격 확인.",
         "links": [
@@ -2419,7 +2404,8 @@
         },
         "aquarium": false,
         "cost": 10000,
-        "mapUrl": "https://map.naver.com/p/search/화월당"
+        "mapUrl": "https://map.naver.com/p/search/화월당",
+        "savedByUser": true
       },
       {
         "id": "sc_shinhwa",
@@ -2488,7 +2474,8 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/신화정"
+        "mapUrl": "https://map.naver.com/p/search/신화정",
+        "savedByUser": true
       },
       {
         "id": "sc_dowon",
@@ -2551,7 +2538,8 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/도원경"
+        "mapUrl": "https://map.naver.com/p/search/도원경",
+        "savedByUser": false
       },
       {
         "id": "sc_hyangto",
@@ -2624,7 +2612,8 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/향토정"
+        "mapUrl": "https://map.naver.com/p/search/향토정",
+        "savedByUser": false
       },
       {
         "id": "sc_yangji",
@@ -2685,7 +2674,8 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/양지쌈밥"
+        "mapUrl": "https://map.naver.com/p/search/양지쌈밥",
+        "savedByUser": false
       },
       {
         "id": "sc_cheongsu",
@@ -2756,12 +2746,13 @@
         },
         "aquarium": false,
         "cost": 25000,
-        "mapUrl": "https://map.naver.com/p/search/청수정"
+        "mapUrl": "https://map.naver.com/p/search/청수정",
+        "savedByUser": false
       },
       {
         "id": "sc_tteok",
         "name": "순천찹쌀떡 조곡점",
-        "type": "food",
+        "type": "cafe",
         "city": "순천",
         "coord": [
           127.5056,
@@ -2787,7 +2778,9 @@
         },
         "verifiedDate": "2026-10-27",
         "fixedOnly": true,
-        "mapUrl": "https://map.naver.com/p/search/순천찹쌀떡 조곡점"
+        "mapUrl": "https://map.naver.com/p/search/순천찹쌀떡 조곡점",
+        "savedByUser": true,
+        "category": "cafe"
       },
       {
         "id": "ys_insect",
@@ -2830,7 +2823,8 @@
         },
         "verifiedDate": "2026-10-27",
         "hill": true,
-        "mapUrl": "https://map.naver.com/p/search/해오름전시실 곤충박물관"
+        "mapUrl": "https://map.naver.com/p/search/해오름전시실 곤충박물관",
+        "savedByUser": true
       },
       {
         "id": "ys_weather",
@@ -2868,7 +2862,8 @@
         },
         "verifiedDate": "2026-10-27",
         "complex": "expo",
-        "mapUrl": "https://map.naver.com/p/search/국립여수해양기상과학관"
+        "mapUrl": "https://map.naver.com/p/search/국립여수해양기상과학관",
+        "savedByUser": true
       },
       {
         "id": "ys_deokchung",
@@ -2898,7 +2893,8 @@
           "note": "영업시간·휴무는 방문일에 따라 달라질 수 있습니다."
         },
         "verifiedDate": "2026-10-27",
-        "mapUrl": "https://map.naver.com/p/search/덕충식당"
+        "mapUrl": "https://map.naver.com/p/search/덕충식당",
+        "savedByUser": false
       },
       {
         "id": "sc_namnyeok",
@@ -2928,7 +2924,8 @@
           "note": "영업시간·휴무는 방문일에 따라 달라질 수 있습니다."
         },
         "verifiedDate": "2026-10-27",
-        "mapUrl": "https://map.naver.com/p/search/남녘들밥상"
+        "mapUrl": "https://map.naver.com/p/search/남녘들밥상",
+        "savedByUser": true
       },
       {
         "id": "sc_daesup",
@@ -2959,7 +2956,8 @@
           "note": "영업시간·휴무는 방문일에 따라 달라질 수 있습니다."
         },
         "verifiedDate": "2026-10-27",
-        "mapUrl": "https://map.naver.com/p/search/대숲골농원"
+        "mapUrl": "https://map.naver.com/p/search/대숲골농원",
+        "savedByUser": false
       },
       {
         "id": "ys_jamae",
@@ -2991,7 +2989,8 @@
           "note": "06:30–20:00 안내 · 방문일 운영 확인"
         },
         "verifiedDate": "2026-10-27",
-        "mapUrl": "https://map.naver.com/p/search/자매식당"
+        "mapUrl": "https://map.naver.com/p/search/자매식당",
+        "savedByUser": false
       },
       {
         "id": "ys_gubaek",
@@ -3023,7 +3022,8 @@
           "note": "07:30–20:00 안내 · 방문일 운영 확인"
         },
         "verifiedDate": "2026-10-27",
-        "mapUrl": "https://map.naver.com/p/search/구백식당"
+        "mapUrl": "https://map.naver.com/p/search/구백식당",
+        "savedByUser": false
       },
       {
         "id": "ys_yuk66",
@@ -3053,81 +3053,8 @@
           "note": "영업시간·휴무는 방문일에 따라 달라질 수 있습니다."
         },
         "verifiedDate": "2026-10-27",
-        "mapUrl": "https://map.naver.com/p/search/육육간"
-      },
-      {
-        "id": "ys_stay_shilla",
-        "name": "신라스테이 여수",
-        "type": "hotel",
-        "city": "여수",
-        "coord": [
-          127.747,
-          34.743
-        ],
-        "address": "전남 여수시 수정3길 8",
-        "area": "엑스포·수정동",
-        "desc": "기본 선택 숙소. 아쿠아플라넷 가까운 엑스포 권역에서 같은 숙소에 2박합니다.",
-        "visitMin": 60,
-        "tags": [
-          "여수 2박",
-          "오션뷰"
-        ],
-        "links": [
-          {
-            "label": "장소 안내",
-            "url": "https://www.shillahotels.com/ko/shillastay/yeosu/introduction/about.do"
-          }
-        ],
-        "coordStatus": "주소와 주변 권역을 기준으로 표시한 대략적인 위치입니다. 정확한 출입구는 지도 링크에서 확인하세요.",
-        "hours": {
-          "note": "체크인 15시·체크아웃 11시 기준 계획. 예약 상품 조건 확인."
-        },
-        "verifiedDate": "2026-10-27",
-        "room": {
-          "name": "오션뷰 객실 · 조식 제외",
-          "bathDescription": "욕조는 예약할 객실 상품에서 확인이 필요합니다.",
-          "bathStatus": "unknown"
-        },
-        "costNote": "2026.11.28–30의 실제 2박 요금은 아직 확인하지 않았습니다. 객실·전망·취소 조건을 맞춰 예약 사이트의 총액을 비교하세요.",
-        "stayKind": "hotel",
-        "mapUrl": "https://map.naver.com/p/search/신라스테이 여수"
-      },
-      {
-        "id": "ys_stay_utop",
-        "name": "유탑 마리나 호텔 & 리조트",
-        "type": "hotel",
-        "city": "여수",
-        "coord": [
-          127.75,
-          34.7448
-        ],
-        "address": "전남 여수시 오동도로 61-15",
-        "area": "엑스포·수정동",
-        "desc": "바다 전망 테라스를 갖춘 엑스포 권역 호텔. 오션 디럭스 더블과 별도 자쿠지 객실을 구분하세요.",
-        "visitMin": 60,
-        "tags": [
-          "여수 2박",
-          "오션뷰"
-        ],
-        "links": [
-          {
-            "label": "장소 안내",
-            "url": "https://www.utopmarina.com/view/viewLink.do?page=homepage/KOR/accommodation/deluxedb"
-          }
-        ],
-        "coordStatus": "주소와 주변 권역을 기준으로 표시한 대략적인 위치입니다. 정확한 출입구는 지도 링크에서 확인하세요.",
-        "hours": {
-          "note": "체크인 15시·체크아웃 11시 기준 계획. 예약 상품 조건 확인."
-        },
-        "verifiedDate": "2026-10-27",
-        "room": {
-          "name": "오션 디럭스 더블 / 자쿠지 스위트 별도",
-          "bathDescription": "일반 객실에 성인 욕조가 있다고 간주하지 않습니다. 자쿠지는 별도 상품.",
-          "bathStatus": "room-specific"
-        },
-        "costNote": "2026.11.28–30의 실제 2박 요금은 아직 확인하지 않았습니다. 객실·전망·취소 조건을 맞춰 예약 사이트의 총액을 비교하세요.",
-        "stayKind": "hotel",
-        "mapUrl": "https://map.naver.com/p/search/유탑 마리나 호텔 & 리조트"
+        "mapUrl": "https://map.naver.com/p/search/육육간",
+        "savedByUser": false
       },
       {
         "id": "ys_stay_venezia",
@@ -3140,7 +3067,7 @@
         ],
         "address": "전남 여수시 오동도로 61-13",
         "area": "엑스포·수정동",
-        "desc": "아쿠아플라넷 옆에서 관광 동선을 줄이는 호텔. 오션뷰가 명시된 객실 상품을 비교하세요.",
+        "desc": "이번 여행의 확정 숙소. 아쿠아플라넷 옆 엑스포 권역에서 같은 숙소로 2박합니다.",
         "visitMin": 60,
         "tags": [
           "여수 2박",
@@ -3158,198 +3085,16 @@
         },
         "verifiedDate": "2026-10-27",
         "room": {
-          "name": "오션뷰 지정 객실",
+          "name": "여수 베네치아 2박 · 바다 전망 객실",
           "bathDescription": "슈페리어 더블은 샤워부스 안내. 욕조 필수라면 다른 등급 확인.",
           "bathStatus": "unknown"
         },
         "costNote": "2026.11.28–30의 실제 2박 요금은 아직 확인하지 않았습니다. 객실·전망·취소 조건을 맞춰 예약 사이트의 총액을 비교하세요.",
         "stayKind": "hotel",
-        "mapUrl": "https://map.naver.com/p/search/여수 베네치아 호텔 & 스위트"
-      },
-      {
-        "id": "ys_stay_sono",
-        "name": "소노캄 여수",
-        "type": "hotel",
-        "city": "여수",
-        "coord": [
-          127.7531,
-          34.7414
-        ],
-        "address": "전남 여수시 오동도로 111",
-        "area": "오동도 입구",
-        "desc": "오동도 입구의 바다 전망 호텔. 슈페리어 오션뷰에 욕조가 공식 명시되어 있습니다.",
-        "visitMin": 60,
-        "tags": [
-          "여수 2박",
-          "오션뷰"
-        ],
-        "links": [
-          {
-            "label": "장소 안내",
-            "url": "https://www.sonohotelsresorts.com/calm_ys/roomsviewall/detail/RM00000315"
-          }
-        ],
-        "coordStatus": "주소와 주변 권역을 기준으로 표시한 대략적인 위치입니다. 정확한 출입구는 지도 링크에서 확인하세요.",
-        "hours": {
-          "note": "체크인 15시·체크아웃 11시 기준 계획. 예약 상품 조건 확인."
-        },
-        "verifiedDate": "2026-10-27",
-        "room": {
-          "name": "슈페리어 오션뷰 · 34㎡",
-          "bathDescription": "공식 객실 안내에 욕조 표기. 자쿠지와는 다릅니다.",
-          "bathStatus": "confirmed"
-        },
-        "costNote": "2026.11.28–30의 실제 2박 요금은 아직 확인하지 않았습니다. 객실·전망·취소 조건을 맞춰 예약 사이트의 총액을 비교하세요.",
-        "stayKind": "hotel",
-        "mapUrl": "https://map.naver.com/p/search/소노캄 여수"
-      },
-      {
-        "id": "ys_stay_haven",
-        "name": "호텔 헤이븐",
-        "type": "hotel",
-        "city": "여수",
-        "coord": [
-          127.7457,
-          34.7308
-        ],
-        "address": "전남 여수시 돌산읍 진두해안길 131",
-        "area": "돌산 초입",
-        "desc": "거북선대교 옆의 바다·야경 호텔. 일반 바다 전망과 대교 전망은 객실별로 다릅니다.",
-        "visitMin": 60,
-        "tags": [
-          "여수 2박",
-          "오션뷰"
-        ],
-        "links": [
-          {
-            "label": "장소 안내",
-            "url": "https://korean.visitkorea.or.kr/detail/ms_detail.do?cotid=97cf01bd-43b9-4174-884f-cee6d40c6731"
-          }
-        ],
-        "coordStatus": "주소와 주변 권역을 기준으로 표시한 대략적인 위치입니다. 정확한 출입구는 지도 링크에서 확인하세요.",
-        "hours": {
-          "note": "체크인 15시·체크아웃 11시 기준 계획. 예약 상품 조건 확인."
-        },
-        "verifiedDate": "2026-10-27",
-        "room": {
-          "name": "바다뷰 / 브릿지뷰 객실 구분",
-          "bathDescription": "욕조 객실 여부 미확인.",
-          "bathStatus": "unknown"
-        },
-        "costNote": "2026.11.28–30의 실제 2박 요금은 아직 확인하지 않았습니다. 객실·전망·취소 조건을 맞춰 예약 사이트의 총액을 비교하세요.",
-        "stayKind": "hotel",
-        "mapUrl": "https://map.naver.com/p/search/호텔 헤이븐"
-      },
-      {
-        "id": "ys_stay_oceanhill",
-        "name": "어반스테이 여수오션힐",
-        "type": "hotel",
-        "city": "여수",
-        "coord": [
-          127.7427,
-          34.7202
-        ],
-        "address": "전남 여수시 돌산읍 강남해안로 81",
-        "area": "돌산",
-        "desc": "발코니에서 바다를 보는 돌산 쪽 숙소. 엑스포 관광 시 차량 이동이 추가됩니다.",
-        "visitMin": 60,
-        "tags": [
-          "여수 2박",
-          "오션뷰"
-        ],
-        "links": [
-          {
-            "label": "장소 안내",
-            "url": "https://yeosu.go.kr/tour/leisure/experience/leisure_inst?idx=4786&mode=view"
-          }
-        ],
-        "coordStatus": "주소와 주변 권역을 기준으로 표시한 대략적인 위치입니다. 정확한 출입구는 지도 링크에서 확인하세요.",
-        "hours": {
-          "note": "체크인 15시·체크아웃 11시 기준 계획. 예약 상품 조건 확인."
-        },
-        "verifiedDate": "2026-10-27",
-        "room": {
-          "name": "발코니 오션뷰",
-          "bathDescription": "욕조 여부는 예약 객실 상품 확인.",
-          "bathStatus": "unknown"
-        },
-        "costNote": "2026.11.28–30의 실제 2박 요금은 아직 확인하지 않았습니다. 객실·전망·취소 조건을 맞춰 예약 사이트의 총액을 비교하세요.",
-        "stayKind": "hotel",
-        "mapUrl": "https://map.naver.com/p/search/어반스테이 여수오션힐"
-      },
-      {
-        "id": "ys_stay_jcs",
-        "name": "호텔 JCS 여수",
-        "type": "hotel",
-        "city": "여수",
-        "coord": [
-          127.7573223,
-          34.7037994
-        ],
-        "address": "전남 여수시 돌산읍 돌산로 3169-14",
-        "area": "돌산·평사리",
-        "desc": "디럭스 킹 45㎡의 넓은 2인 오션뷰 객실. 관광보다 객실에서 쉬는 시간도 중요할 때 비교하세요.",
-        "visitMin": 60,
-        "tags": [
-          "여수 2박",
-          "오션뷰"
-        ],
-        "links": [
-          {
-            "label": "장소 안내",
-            "url": "https://hoteljcs.com/room/6"
-          }
-        ],
-        "coordStatus": "주소와 주변 권역을 기준으로 표시한 대략적인 위치입니다. 정확한 출입구는 지도 링크에서 확인하세요.",
-        "hours": {
-          "note": "체크인 15시·체크아웃 11시 기준 계획. 예약 상품 조건 확인."
-        },
-        "verifiedDate": "2026-10-27",
-        "room": {
-          "name": "디럭스 킹 · 45㎡",
-          "bathDescription": "욕조 여부는 공식 객실 설명에서 확인되지 않았습니다.",
-          "bathStatus": "unknown"
-        },
-        "costNote": "2026.11.28–30의 실제 2박 요금은 아직 확인하지 않았습니다. 객실·전망·취소 조건을 맞춰 예약 사이트의 총액을 비교하세요.",
-        "stayKind": "hotel",
-        "mapUrl": "https://map.naver.com/p/search/호텔 JCS 여수"
-      },
-      {
-        "id": "ys_stay_hiddenbay",
-        "name": "히든베이 호텔",
-        "type": "hotel",
-        "city": "여수",
-        "coord": [
-          127.7054,
-          34.7297
-        ],
-        "address": "전남 여수시 신월로 496-25",
-        "area": "신월동",
-        "desc": "전 객실 바다 전망, 가막만을 바라보는 숙소. 엑스포 관광지와는 차량 이동이 추가됩니다.",
-        "visitMin": 60,
-        "tags": [
-          "여수 2박",
-          "오션뷰"
-        ],
-        "links": [
-          {
-            "label": "장소 안내",
-            "url": "https://www.hiddenbay.co.kr/"
-          }
-        ],
-        "coordStatus": "주소와 주변 권역을 기준으로 표시한 대략적인 위치입니다. 정확한 출입구는 지도 링크에서 확인하세요.",
-        "hours": {
-          "note": "체크인 15시·체크아웃 11시 기준 계획. 예약 상품 조건 확인."
-        },
-        "verifiedDate": "2026-10-27",
-        "room": {
-          "name": "오션뷰 객실",
-          "bathDescription": "공용 사우나와 객실 욕조는 별도 시설입니다. 객실 욕조 확인 필요.",
-          "bathStatus": "unknown"
-        },
-        "costNote": "2026.11.28–30의 실제 2박 요금은 아직 확인하지 않았습니다. 객실·전망·취소 조건을 맞춰 예약 사이트의 총액을 비교하세요.",
-        "stayKind": "hotel",
-        "mapUrl": "https://map.naver.com/p/search/히든베이 호텔"
+        "mapUrl": "https://map.naver.com/p/search/여수 베네치아 호텔 & 스위트",
+        "accessNote": "오션뷰 등급과 층·방향에 따라 실제 전망이 달라집니다. 예약한 객실의 전망 조건을 확인하세요.",
+        "fixedOnly": true,
+        "savedByUser": true
       },
       {
         "id": "busan",
@@ -3376,7 +3121,8 @@
           "note": "영업시간·휴무는 방문일에 따라 달라질 수 있습니다."
         },
         "verifiedDate": "2026-10-27",
-        "mapUrl": "https://map.naver.com/p/search/대연동 출발·도착"
+        "mapUrl": "https://map.naver.com/p/search/대연동 출발·도착",
+        "savedByUser": false
       },
       {
         "id": "busan_pickup",
@@ -3403,11 +3149,436 @@
           "note": "영업시간·휴무는 방문일에 따라 달라질 수 있습니다."
         },
         "verifiedDate": "2026-10-27",
-        "mapUrl": "https://map.naver.com/p/search/당감동 · 민지 픽업"
+        "mapUrl": "https://map.naver.com/p/search/당감동 · 민지 픽업",
+        "savedByUser": false
+      },
+      {
+        "id": "sc_goodies",
+        "name": "구디스파이 · 옥리단길 본점",
+        "type": "cafe",
+        "city": "순천",
+        "coord": [
+          127.4815,
+          34.9568
+        ],
+        "address": "전남 순천시 금옥길 30 1층",
+        "area": "옥리단길",
+        "desc": "파이와 구움과자를 포장하는 후보. 조곡점 찹쌀떡 다음에 들러 간단한 점심으로 먹고 국가정원으로 갑니다.",
+        "tags": [
+          "파이",
+          "포장",
+          "간단한 점심"
+        ],
+        "links": [
+          {
+            "label": "매장·관광 안내",
+            "url": "https://www.instagram.com/goodies_pie/"
+          }
+        ],
+        "hours": {
+          "note": "공개 안내의 개장 시각이 11~12시로 달라 방문 전 확인하세요. 일정은 12시 이후 방문으로 계획합니다.",
+          "open": 720,
+          "close": 1200
+        },
+        "coordStatus": "주소·권역 기준의 대략 위치입니다. 정확한 입구는 네이버지도에서 확인하세요.",
+        "verifiedDate": "2026-10-28",
+        "savedByUser": true
+      },
+      {
+        "id": "ys_pocha",
+        "name": "여수 낭만포차거리",
+        "type": "food",
+        "city": "여수",
+        "coord": [
+          127.7456,
+          34.7365
+        ],
+        "address": "전남 여수시 하멜로 102 일원",
+        "area": "종화동·거북선대교",
+        "desc": "돌문어삼합·해산물 등을 고르는 포차 구역. 우선 거리로 동선을 잡고 현장에서 포차를 선택하는 후보입니다.",
+        "tags": [
+          "포차",
+          "삼합",
+          "저녁"
+        ],
+        "links": [
+          {
+            "label": "매장·관광 안내",
+            "url": "https://www.yeosu.go.kr/tour/leisure/bambada/gun_carriage"
+          }
+        ],
+        "hours": {
+          "open": 1080,
+          "close": 1500,
+          "note": "여수시 안내 18:00~익일 01:00. 기상·점포별 임시 휴무를 확인하세요."
+        },
+        "coordStatus": "주소·권역 기준의 대략 위치입니다. 정확한 입구는 네이버지도에서 확인하세요.",
+        "verifiedDate": "2026-10-28",
+        "savedByUser": false
+      },
+      {
+        "id": "ys_sampo",
+        "name": "엑스포 삼포집",
+        "type": "food",
+        "city": "여수",
+        "coord": [
+          127.7473,
+          34.7463
+        ],
+        "address": "전남 여수시 오동도로 66",
+        "area": "엑스포·수정동",
+        "desc": "삼겹살과 회를 함께 비교할 수 있는 엑스포 권역 식당. 둘째 날 고기 저녁 후보로 넣었습니다.",
+        "tags": [
+          "고기",
+          "삼겹살",
+          "회"
+        ],
+        "links": [
+          {
+            "label": "매장·관광 안내",
+            "url": "https://map.naver.com/p/search/%EC%97%91%EC%8A%A4%ED%8F%AC%20%EC%82%BC%ED%8F%AC%EC%A7%91"
+          }
+        ],
+        "hours": {
+          "note": "방문 전 네이버지도에서 영업시간과 메뉴를 확인하세요."
+        },
+        "coordStatus": "주소·권역 기준의 대략 위치입니다. 정확한 입구는 네이버지도에서 확인하세요.",
+        "verifiedDate": "2026-10-28",
+        "savedByUser": false
+      },
+      {
+        "id": "ys_nokwon",
+        "name": "녹원갈비",
+        "type": "food",
+        "category": "food",
+        "city": "여수",
+        "area": "엑스포·공화동",
+        "coord": [
+          127.7428,
+          34.7477
+        ],
+        "lng": 127.7428,
+        "lat": 34.7477,
+        "address": "전남 여수시 공화남3길 22-1",
+        "desc": "양념한우갈비·돼지갈비와 갈비탕을 비교할 수 있는 고깃집입니다. 해산물 식사가 겹치면 둘째 날 저녁 후보로 고르기 좋습니다.",
+        "tags": [
+          "고기",
+          "갈비",
+          "국물"
+        ],
+        "savedByUser": true,
+        "coordStatus": "저장 목록 주소를 기준으로 잡은 근사 위치입니다. 실제 입구·주차장은 네이버지도에서 확인하세요.",
+        "hours": {
+          "note": "현재 운영시간·준비시간·정기휴무는 네이버지도에서 확인하세요. 방문 날짜의 영업은 확정되지 않았습니다."
+        },
+        "links": [
+          {
+            "label": "보내주신 네이버 저장 목록",
+            "url": "https://naver.me/x4l3DYMu"
+          }
+        ],
+        "verifiedDate": "2026-10-28"
+      },
+      {
+        "id": "ys_ssuk",
+        "name": "쓖 원조생초콜릿 쓕",
+        "type": "cafe",
+        "category": "cafe",
+        "city": "여수",
+        "area": "이순신광장·중앙동",
+        "coord": [
+          127.7352,
+          34.7415
+        ],
+        "lng": 127.7352,
+        "lat": 34.7415,
+        "address": "전남 여수시 중앙동 561 1층",
+        "desc": "생초콜릿을 포장하는 디저트 후보입니다. 마지막 날 광장 주변 먹거리와 묶기 좋고, 부산까지 가져갈 때 보관·보냉 방법을 매장에서 확인하세요.",
+        "tags": [
+          "초콜릿",
+          "포장",
+          "기념품"
+        ],
+        "savedByUser": true,
+        "coordStatus": "저장 목록 주소를 기준으로 잡은 근사 위치입니다. 실제 입구·주차장은 네이버지도에서 확인하세요.",
+        "hours": {
+          "note": "현재 운영시간·준비시간·정기휴무는 네이버지도에서 확인하세요. 방문 날짜의 영업은 확정되지 않았습니다."
+        },
+        "links": [
+          {
+            "label": "보내주신 네이버 저장 목록",
+            "url": "https://naver.me/x4l3DYMu"
+          }
+        ],
+        "verifiedDate": "2026-10-28"
+      },
+      {
+        "id": "ys_honam",
+        "name": "호남갈비",
+        "type": "food",
+        "category": "food",
+        "city": "여수",
+        "area": "엑스포·공화동",
+        "coord": [
+          127.7435,
+          34.7471
+        ],
+        "lng": 127.7435,
+        "lat": 34.7471,
+        "address": "전남 여수시 공화동 1070-1",
+        "desc": "엑스포 권역에서 갈비로 저녁을 먹는 후보입니다. 녹원갈비·포석정과 메뉴 구성, 주차와 대기 상황을 비교해 한 곳을 고르면 됩니다.",
+        "tags": [
+          "고기",
+          "갈비",
+          "저녁"
+        ],
+        "savedByUser": true,
+        "coordStatus": "저장 목록 주소를 기준으로 잡은 근사 위치입니다. 실제 입구·주차장은 네이버지도에서 확인하세요.",
+        "hours": {
+          "note": "현재 운영시간·준비시간·정기휴무는 네이버지도에서 확인하세요. 방문 날짜의 영업은 확정되지 않았습니다."
+        },
+        "links": [
+          {
+            "label": "보내주신 네이버 저장 목록",
+            "url": "https://naver.me/x4l3DYMu"
+          }
+        ],
+        "verifiedDate": "2026-10-28"
+      },
+      {
+        "id": "ys_poseok",
+        "name": "포석정 엑스포역 본점",
+        "type": "food",
+        "category": "food",
+        "city": "여수",
+        "area": "엑스포·오동도",
+        "coord": [
+          127.7458,
+          34.7461
+        ],
+        "lng": 127.7458,
+        "lat": 34.7461,
+        "address": "전남 여수시 수정동 343-5 2층",
+        "desc": "오동도와 엑스포 사이에서 고기 요리를 먹는 후보입니다. 베네치아 숙소와 관람 동선 주변에서 저녁 장소를 고를 때 함께 비교하기 좋습니다.",
+        "tags": [
+          "고기",
+          "엑스포",
+          "저녁"
+        ],
+        "savedByUser": true,
+        "coordStatus": "저장 목록 주소를 기준으로 잡은 근사 위치입니다. 실제 입구·주차장은 네이버지도에서 확인하세요.",
+        "hours": {
+          "note": "현재 운영시간·준비시간·정기휴무는 네이버지도에서 확인하세요. 방문 날짜의 영업은 확정되지 않았습니다."
+        },
+        "links": [
+          {
+            "label": "보내주신 네이버 저장 목록",
+            "url": "https://naver.me/x4l3DYMu"
+          }
+        ],
+        "verifiedDate": "2026-10-28"
+      },
+      {
+        "id": "ys_jeongnam",
+        "name": "정남옥 여수점",
+        "type": "food",
+        "category": "food",
+        "city": "여수",
+        "area": "엑스포·오동도",
+        "coord": [
+          127.7459,
+          34.7462
+        ],
+        "lng": 127.7459,
+        "lat": 34.7462,
+        "address": "전남 여수시 수정동 343-4 1층",
+        "desc": "순대국으로 간단하고 따뜻하게 먹는 식당입니다. 둘째 날 전시 관람 사이 점심이나 마지막 날 부산 출발 전 짧은 식사 후보입니다.",
+        "tags": [
+          "국밥",
+          "간단한 식사",
+          "점심"
+        ],
+        "savedByUser": true,
+        "coordStatus": "저장 목록 주소를 기준으로 잡은 근사 위치입니다. 실제 입구·주차장은 네이버지도에서 확인하세요.",
+        "hours": {
+          "note": "현재 운영시간·준비시간·정기휴무는 네이버지도에서 확인하세요. 방문 날짜의 영업은 확정되지 않았습니다."
+        },
+        "links": [
+          {
+            "label": "보내주신 네이버 저장 목록",
+            "url": "https://naver.me/x4l3DYMu"
+          }
+        ],
+        "verifiedDate": "2026-10-28"
+      },
+      {
+        "id": "ys_jangga",
+        "name": "장가 닭강정",
+        "type": "food",
+        "category": "food",
+        "city": "여수",
+        "area": "종포·중앙동",
+        "coord": [
+          127.7406,
+          34.7391
+        ],
+        "lng": 127.7406,
+        "lat": 34.7391,
+        "address": "전남 여수시 종화동 613-1",
+        "desc": "닭강정을 포장해 숙소에서 먹는 후보입니다. 저녁을 가볍게 해결하거나 숙소에서 쉬면서 먹을 메뉴로 비교하기 좋습니다.",
+        "tags": [
+          "닭강정",
+          "포장",
+          "숙소음식"
+        ],
+        "savedByUser": true,
+        "coordStatus": "저장 목록 주소를 기준으로 잡은 근사 위치입니다. 실제 입구·주차장은 네이버지도에서 확인하세요.",
+        "hours": {
+          "note": "현재 운영시간·준비시간·정기휴무는 네이버지도에서 확인하세요. 방문 날짜의 영업은 확정되지 않았습니다."
+        },
+        "links": [
+          {
+            "label": "보내주신 네이버 저장 목록",
+            "url": "https://naver.me/x4l3DYMu"
+          }
+        ],
+        "verifiedDate": "2026-10-28"
+      },
+      {
+        "id": "ys_themas",
+        "name": "더마스 다이닝",
+        "type": "food",
+        "category": "food",
+        "city": "여수",
+        "area": "엑스포·공화동",
+        "coord": [
+          127.7432,
+          34.7484
+        ],
+        "lng": 127.7432,
+        "lat": 34.7484,
+        "address": "전남 여수시 공화동 766",
+        "desc": "파스타 중심의 양식 식당입니다. 게장·회가 이어질 때 메뉴를 바꾸기 좋으며, 관람 후 여유 있는 저녁을 원하면 예약 가능 여부를 확인하세요.",
+        "tags": [
+          "파스타",
+          "양식",
+          "저녁"
+        ],
+        "savedByUser": true,
+        "coordStatus": "저장 목록 주소를 기준으로 잡은 근사 위치입니다. 실제 입구·주차장은 네이버지도에서 확인하세요.",
+        "hours": {
+          "note": "현재 운영시간·준비시간·정기휴무는 네이버지도에서 확인하세요. 방문 날짜의 영업은 확정되지 않았습니다."
+        },
+        "links": [
+          {
+            "label": "보내주신 네이버 저장 목록",
+            "url": "https://naver.me/x4l3DYMu"
+          }
+        ],
+        "verifiedDate": "2026-10-28"
+      },
+      {
+        "id": "ys_badachicken",
+        "name": "여수바다닭강정",
+        "type": "food",
+        "category": "food",
+        "city": "여수",
+        "area": "엑스포·오동도",
+        "coord": [
+          127.7461,
+          34.7464
+        ],
+        "lng": 127.7461,
+        "lat": 34.7464,
+        "address": "전남 여수시 수정동 343-1",
+        "desc": "엑스포·오동도 근처에서 닭강정을 포장하는 후보입니다. 숙소로 돌아가는 길에 들르기 좋고, 포장 대기와 마감 시간을 확인하면 편합니다.",
+        "tags": [
+          "닭강정",
+          "포장",
+          "숙소음식"
+        ],
+        "savedByUser": true,
+        "coordStatus": "저장 목록 주소를 기준으로 잡은 근사 위치입니다. 실제 입구·주차장은 네이버지도에서 확인하세요.",
+        "hours": {
+          "note": "현재 운영시간·준비시간·정기휴무는 네이버지도에서 확인하세요. 방문 날짜의 영업은 확정되지 않았습니다."
+        },
+        "links": [
+          {
+            "label": "보내주신 네이버 저장 목록",
+            "url": "https://naver.me/x4l3DYMu"
+          }
+        ],
+        "verifiedDate": "2026-10-28"
+      },
+      {
+        "id": "ys_heebbang",
+        "name": "여수희빵",
+        "type": "cafe",
+        "category": "cafe",
+        "city": "여수",
+        "area": "웅천·외곽",
+        "coord": [
+          127.6766,
+          34.7478
+        ],
+        "lng": 127.6766,
+        "lat": 34.7478,
+        "address": "전남 여수시 웅천동 1722-3 1층",
+        "desc": "웅천에 있는 베이커리로 마지막 날 빵 포장 후보입니다. 숙소·오동도 권역에서 벗어나므로 가까운 중앙동 디저트 가게보다 이동을 더 잡아야 합니다.",
+        "tags": [
+          "베이커리",
+          "포장",
+          "외곽"
+        ],
+        "savedByUser": true,
+        "coordStatus": "저장 목록 주소를 기준으로 잡은 근사 위치입니다. 실제 입구·주차장은 네이버지도에서 확인하세요.",
+        "hours": {
+          "note": "현재 운영시간·준비시간·정기휴무는 네이버지도에서 확인하세요. 방문 날짜의 영업은 확정되지 않았습니다."
+        },
+        "links": [
+          {
+            "label": "보내주신 네이버 저장 목록",
+            "url": "https://naver.me/x4l3DYMu"
+          }
+        ],
+        "verifiedDate": "2026-10-28"
+      },
+      {
+        "id": "ys_taco",
+        "name": "여수 돌문어타코",
+        "type": "food",
+        "category": "food",
+        "city": "여수",
+        "area": "이순신광장·중앙동",
+        "coord": [
+          127.7358,
+          34.7406
+        ],
+        "lng": 127.7358,
+        "lat": 34.7406,
+        "address": "전남 여수시 중앙동 617",
+        "desc": "돌문어를 활용한 타코를 먹는 간단한 식사 후보입니다. 마지막 날 빵·디저트 쇼핑과 묶어 들르기 좋고, 식사량과 포장 여부를 확인해 고르세요.",
+        "tags": [
+          "타코",
+          "간단한 식사",
+          "포장"
+        ],
+        "savedByUser": true,
+        "coordStatus": "저장 목록 주소를 기준으로 잡은 근사 위치입니다. 실제 입구·주차장은 네이버지도에서 확인하세요.",
+        "hours": {
+          "note": "현재 운영시간·준비시간·정기휴무는 네이버지도에서 확인하세요. 방문 날짜의 영업은 확정되지 않았습니다."
+        },
+        "links": [
+          {
+            "label": "보내주신 네이버 저장 목록",
+            "url": "https://naver.me/x4l3DYMu"
+          }
+        ],
+        "verifiedDate": "2026-10-28"
       }
     ],
     "itinerary": {
-      "defaultHotel": "ys_stay_shilla",
+      "defaultHotel": "ys_stay_venezia",
       "days": [
         [
           {
@@ -3430,13 +3601,15 @@
             "title": "찹쌀떡 포장"
           },
           {
-            "id": "d0-lunch",
+            "id": "d0-bakery",
             "kind": "slot",
-            "title": "점심",
-            "duration": 90,
+            "title": "빵 포장·간단한 점심",
+            "duration": 40,
             "city": "순천",
-            "types": [
-              "food"
+            "types": [],
+            "only": [
+              "sc_goodies",
+              "sc_hwawol"
             ]
           },
           {
@@ -3465,17 +3638,6 @@
           }
         ],
         [
-          {
-            "id": "d1-breakfast",
-            "kind": "slot",
-            "title": "아침",
-            "duration": 40,
-            "city": "여수",
-            "types": [
-              "food"
-            ],
-            "notBefore": 510
-          },
           {
             "id": "insect",
             "kind": "visit",
@@ -3534,17 +3696,6 @@
         ],
         [
           {
-            "id": "d2-breakfast",
-            "kind": "slot",
-            "title": "아침",
-            "duration": 40,
-            "city": "여수",
-            "types": [
-              "food"
-            ],
-            "notBefore": 510
-          },
-          {
             "id": "checkout",
             "kind": "checkout",
             "duration": 10
@@ -3559,27 +3710,35 @@
           {
             "id": "d2-break",
             "kind": "slot",
-            "title": "카페 또는 벽화마을",
-            "duration": 60,
+            "title": "빵집·카페 포장",
+            "duration": 40,
             "city": "여수",
             "types": [
               "cafe"
             ],
             "allow": [
-              "ys_goso"
+              "ys_yeosudang",
+              "ys_jwasuyeong"
             ]
           },
           {
             "id": "d2-lunch",
             "kind": "slot",
-            "title": "점심",
-            "duration": 60,
+            "title": "여수에서 간단한 점심",
+            "duration": 30,
             "city": "여수",
             "types": [
               "food"
-            ]
+            ],
+            "conditional": "nearby"
           }
         ]
+      ],
+      "hotelFixed": true,
+      "morningDepartures": [
+        450,
+        540,
+        570
       ]
     },
     "routes": {
@@ -3596,8 +3755,7 @@
           34.739034277098646
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_flowercrab>ys_odongdo:road": {
         "seconds": 821,
@@ -3612,8 +3770,7 @@
           34.74459824794542
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_flowercrab>ys_aquaplanet:road": {
         "seconds": 649,
@@ -3628,8 +3785,7 @@
           34.7462208797333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_flowercrab>ys_arte:road": {
         "seconds": 555,
@@ -3644,8 +3800,7 @@
           34.7506593031808
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_flowercrab>ys_dolmuneo:road": {
         "seconds": 577,
@@ -3660,8 +3815,7 @@
           34.7376287077197
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_flowercrab>ys_rotary:road": {
         "seconds": 357,
@@ -3676,8 +3830,7 @@
           34.7414674456185
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_flowercrab>ys_yeosudang:road": {
         "seconds": 333,
@@ -3692,8 +3845,7 @@
           34.73989892574248
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_flowercrab>ys_mongdol:road": {
         "seconds": 1004,
@@ -3708,8 +3860,7 @@
           34.6815557787713
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_flowercrab>ys_nangman:road": {
         "seconds": 620,
@@ -3724,8 +3875,7 @@
           34.7387328132004
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_rotary>ys_flowercrab:road": {
         "seconds": 310,
@@ -3740,8 +3890,7 @@
           34.733022595376845
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_rotary>ys_goso:road": {
         "seconds": 465,
@@ -3756,8 +3905,7 @@
           34.739034277098646
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_rotary>ys_odongdo:road": {
         "seconds": 687,
@@ -3772,8 +3920,7 @@
           34.74459824794542
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_rotary>ys_aquaplanet:road": {
         "seconds": 633,
@@ -3788,8 +3935,7 @@
           34.7462208797333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_rotary>ys_arte:road": {
         "seconds": 653,
@@ -3804,8 +3950,7 @@
           34.7506593031808
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_rotary>ys_dolmuneo:road": {
         "seconds": 445,
@@ -3820,8 +3965,7 @@
           34.7376287077197
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_rotary>ys_yeosudang:road": {
         "seconds": 223,
@@ -3836,8 +3980,7 @@
           34.73989892574248
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_rotary>ys_mongdol:road": {
         "seconds": 1147,
@@ -3852,8 +3995,7 @@
           34.6815557787713
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_rotary>ys_nangman:road": {
         "seconds": 511,
@@ -3868,8 +4010,7 @@
           34.7387328132004
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_goso>ys_flowercrab:road": {
         "seconds": 732,
@@ -3884,8 +4025,7 @@
           34.733022595376845
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_goso>ys_odongdo:road": {
         "seconds": 463,
@@ -3900,8 +4040,7 @@
           34.74459824794542
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_goso>ys_aquaplanet:road": {
         "seconds": 504,
@@ -3916,8 +4055,7 @@
           34.7462208797333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_goso>ys_arte:road": {
         "seconds": 466,
@@ -3932,8 +4070,7 @@
           34.7506593031808
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_goso>ys_dolmuneo:road": {
         "seconds": 219,
@@ -3948,8 +4085,7 @@
           34.7376287077197
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_goso>ys_rotary:road": {
         "seconds": 512,
@@ -3964,8 +4100,7 @@
           34.7414674456185
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_goso>ys_yeosudang:road": {
         "seconds": 425,
@@ -3980,8 +4115,7 @@
           34.73989892574248
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_goso>ys_mongdol:road": {
         "seconds": 1271,
@@ -3996,8 +4130,7 @@
           34.6815557787713
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_goso>ys_nangman:road": {
         "seconds": 194,
@@ -4012,8 +4145,7 @@
           34.7387328132004
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_arte>ys_flowercrab:road": {
         "seconds": 707,
@@ -4028,8 +4160,7 @@
           34.733022595376845
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_arte>ys_goso:road": {
         "seconds": 453,
@@ -4044,8 +4175,7 @@
           34.739034277098646
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_arte>ys_odongdo:road": {
         "seconds": 462,
@@ -4060,8 +4190,7 @@
           34.74459824794542
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_arte>ys_aquaplanet:road": {
         "seconds": 328,
@@ -4076,8 +4205,7 @@
           34.7462208797333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_arte>ys_dolmuneo:road": {
         "seconds": 390,
@@ -4092,8 +4220,7 @@
           34.7376287077197
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_arte>ys_rotary:road": {
         "seconds": 595,
@@ -4108,8 +4235,7 @@
           34.7414674456185
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_arte>ys_yeosudang:road": {
         "seconds": 611,
@@ -4124,8 +4250,7 @@
           34.73989892574248
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_arte>ys_mongdol:road": {
         "seconds": 1087,
@@ -4140,8 +4265,7 @@
           34.6815557787713
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_arte>ys_nangman:road": {
         "seconds": 529,
@@ -4156,8 +4280,7 @@
           34.7387328132004
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_dolmuneo>ys_flowercrab:road": {
         "seconds": 991,
@@ -4172,8 +4295,7 @@
           34.733022595376845
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_dolmuneo>ys_goso:road": {
         "seconds": 515,
@@ -4188,8 +4310,7 @@
           34.739034277098646
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_dolmuneo>ys_odongdo:road": {
         "seconds": 246,
@@ -4204,8 +4325,7 @@
           34.74459824794542
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_dolmuneo>ys_aquaplanet:road": {
         "seconds": 292,
@@ -4220,8 +4340,7 @@
           34.7462208797333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_dolmuneo>ys_arte:road": {
         "seconds": 390,
@@ -4236,8 +4355,7 @@
           34.7506593031808
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_dolmuneo>ys_rotary:road": {
         "seconds": 710,
@@ -4252,8 +4370,7 @@
           34.7414674456185
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_dolmuneo>ys_yeosudang:road": {
         "seconds": 578,
@@ -4268,8 +4385,7 @@
           34.73989892574248
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_dolmuneo>ys_mongdol:road": {
         "seconds": 1248,
@@ -4284,8 +4400,7 @@
           34.6815557787713
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_dolmuneo>ys_nangman:road": {
         "seconds": 678,
@@ -4300,8 +4415,7 @@
           34.7387328132004
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_odongdo>ys_flowercrab:road": {
         "seconds": 959,
@@ -4316,8 +4430,7 @@
           34.733022595376845
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_odongdo>ys_goso:road": {
         "seconds": 486,
@@ -4332,8 +4445,7 @@
           34.739034277098646
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_odongdo>ys_aquaplanet:road": {
         "seconds": 310,
@@ -4348,8 +4460,7 @@
           34.7462208797333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_odongdo>ys_arte:road": {
         "seconds": 408,
@@ -4364,8 +4475,7 @@
           34.7506593031808
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_odongdo>ys_dolmuneo:road": {
         "seconds": 414,
@@ -4380,8 +4490,7 @@
           34.7376287077197
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_odongdo>ys_rotary:road": {
         "seconds": 729,
@@ -4396,8 +4505,7 @@
           34.7414674456185
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_odongdo>ys_yeosudang:road": {
         "seconds": 548,
@@ -4412,8 +4520,7 @@
           34.73989892574248
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_odongdo>ys_mongdol:road": {
         "seconds": 1265,
@@ -4428,8 +4535,7 @@
           34.6815557787713
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_odongdo>ys_nangman:road": {
         "seconds": 649,
@@ -4444,8 +4550,7 @@
           34.7387328132004
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_aquaplanet>ys_flowercrab:road": {
         "seconds": 823,
@@ -4460,8 +4565,7 @@
           34.733022595376845
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_aquaplanet>ys_goso:road": {
         "seconds": 566,
@@ -4476,8 +4580,7 @@
           34.739034277098646
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_aquaplanet>ys_odongdo:road": {
         "seconds": 576,
@@ -4492,8 +4595,7 @@
           34.74459824794542
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_aquaplanet>ys_arte:road": {
         "seconds": 152,
@@ -4508,8 +4610,7 @@
           34.7506593031808
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_aquaplanet>ys_dolmuneo:road": {
         "seconds": 504,
@@ -4524,8 +4625,7 @@
           34.7376287077197
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_aquaplanet>ys_rotary:road": {
         "seconds": 713,
@@ -4540,8 +4640,7 @@
           34.7414674456185
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_aquaplanet>ys_yeosudang:road": {
         "seconds": 727,
@@ -4556,8 +4655,7 @@
           34.73989892574248
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_aquaplanet>ys_mongdol:road": {
         "seconds": 1205,
@@ -4572,8 +4670,7 @@
           34.6815557787713
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_aquaplanet>ys_nangman:road": {
         "seconds": 643,
@@ -4588,8 +4685,7 @@
           34.7387328132004
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_mongdol>ys_flowercrab:road": {
         "seconds": 1170,
@@ -4604,8 +4700,7 @@
           34.733022595376845
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_mongdol>ys_goso:road": {
         "seconds": 1240,
@@ -4620,8 +4715,7 @@
           34.739034277098646
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_mongdol>ys_odongdo:road": {
         "seconds": 1240,
@@ -4636,8 +4730,7 @@
           34.74459824794542
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_mongdol>ys_aquaplanet:road": {
         "seconds": 1114,
@@ -4652,8 +4745,7 @@
           34.7462208797333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_mongdol>ys_arte:road": {
         "seconds": 1012,
@@ -4668,8 +4760,7 @@
           34.7506593031808
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_mongdol>ys_dolmuneo:road": {
         "seconds": 1173,
@@ -4684,8 +4775,7 @@
           34.7376287077197
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_mongdol>ys_rotary:road": {
         "seconds": 1265,
@@ -4700,8 +4790,7 @@
           34.7414674456185
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_mongdol>ys_yeosudang:road": {
         "seconds": 1124,
@@ -4716,8 +4805,7 @@
           34.73989892574248
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_mongdol>ys_nangman:road": {
         "seconds": 1314,
@@ -4732,8 +4820,7 @@
           34.7387328132004
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_nangman>ys_flowercrab:road": {
         "seconds": 760,
@@ -4748,8 +4835,7 @@
           34.733022595376845
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_nangman>ys_goso:road": {
         "seconds": 83,
@@ -4764,8 +4850,7 @@
           34.739034277098646
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_nangman>ys_odongdo:road": {
         "seconds": 491,
@@ -4780,8 +4865,7 @@
           34.74459824794542
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_nangman>ys_aquaplanet:road": {
         "seconds": 532,
@@ -4796,8 +4880,7 @@
           34.7462208797333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_nangman>ys_arte:road": {
         "seconds": 493,
@@ -4812,8 +4895,7 @@
           34.7506593031808
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_nangman>ys_dolmuneo:road": {
         "seconds": 247,
@@ -4828,8 +4910,7 @@
           34.7376287077197
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_nangman>ys_rotary:road": {
         "seconds": 538,
@@ -4844,8 +4925,7 @@
           34.7414674456185
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_nangman>ys_yeosudang:road": {
         "seconds": 451,
@@ -4860,8 +4940,7 @@
           34.73989892574248
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_nangman>ys_mongdol:road": {
         "seconds": 1296,
@@ -4876,8 +4955,7 @@
           34.6815557787713
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_yeosudang>ys_flowercrab:road": {
         "seconds": 515,
@@ -4892,8 +4970,7 @@
           34.733022595376845
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_yeosudang>ys_goso:road": {
         "seconds": 258,
@@ -4908,8 +4985,7 @@
           34.739034277098646
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_yeosudang>ys_odongdo:road": {
         "seconds": 487,
@@ -4924,8 +5000,7 @@
           34.74459824794542
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_yeosudang>ys_aquaplanet:road": {
         "seconds": 434,
@@ -4940,8 +5015,7 @@
           34.7462208797333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_yeosudang>ys_arte:road": {
         "seconds": 446,
@@ -4956,8 +5030,7 @@
           34.7506593031808
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_yeosudang>ys_dolmuneo:road": {
         "seconds": 243,
@@ -4972,8 +5045,7 @@
           34.7376287077197
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_yeosudang>ys_rotary:road": {
         "seconds": 338,
@@ -4988,8 +5060,7 @@
           34.7414674456185
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_yeosudang>ys_mongdol:road": {
         "seconds": 1253,
@@ -5004,8 +5075,7 @@
           34.6815557787713
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_yeosudang>ys_nangman:road": {
         "seconds": 304,
@@ -5020,8 +5090,7 @@
           34.7387328132004
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "ys_rotary>ys_aquaplanet:transit": {
         "seconds": 1288,
@@ -5037,7 +5106,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EB%A1%9C%ED%83%80%EB%A6%AC%EC%8B%9D%EB%8B%B9,34.741467,127.727529/%EC%95%84%EC%BF%A0%EC%95%84%ED%94%8C%EB%9D%BC%EB%84%B7+%EC%97%AC%EC%88%98,34.746221,127.748734",
         "fare": {
           "value": 1600
         },
@@ -5058,7 +5126,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EC%95%84%EC%BF%A0%EC%95%84%ED%94%8C%EB%9D%BC%EB%84%B7+%EC%97%AC%EC%88%98,34.746221,127.748734/%EC%95%84%EB%A5%B4%EB%96%BC%EB%AE%A4%EC%A7%80%EC%97%84+%EC%97%AC%EC%88%98,34.750659,127.745802",
         "fare": {
           "value": 1600
         },
@@ -5079,7 +5146,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EC%97%AC%EC%88%98%EB%8B%B9,34.739899,127.735349/%EB%82%AD%EB%A7%8C%EC%B9%B4%ED%8E%98,34.738733,127.740359",
         "fare": {
           "value": 1600
         },
@@ -5100,7 +5166,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EC%95%84%EB%A5%B4%EB%96%BC%EB%AE%A4%EC%A7%80%EC%97%84+%EC%97%AC%EC%88%98,34.750659,127.745802/%EB%8F%8C%EB%AC%B8%EC%96%B4%EC%83%81%ED%9A%8C,34.737629,127.747132",
         "fare": {
           "value": 1600
         },
@@ -5121,7 +5186,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EC%95%84%EB%A5%B4%EB%96%BC%EB%AE%A4%EC%A7%80%EC%97%84+%EC%97%AC%EC%88%98,34.750659,127.745802/%EC%95%84%EC%BF%A0%EC%95%84%ED%94%8C%EB%9D%BC%EB%84%B7+%EC%97%AC%EC%88%98,34.746221,127.748734",
         "fare": {
           "value": 1600
         },
@@ -5142,7 +5206,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EB%8F%8C%EB%AC%B8%EC%96%B4%EC%83%81%ED%9A%8C,34.737629,127.747132/%EC%95%84%EB%A5%B4%EB%96%BC%EB%AE%A4%EC%A7%80%EC%97%84+%EC%97%AC%EC%88%98,34.750659,127.745802",
         "fare": {
           "value": 1600
         },
@@ -5163,7 +5226,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EC%95%84%EC%BF%A0%EC%95%84%ED%94%8C%EB%9D%BC%EB%84%B7+%EC%97%AC%EC%88%98,34.746221,127.748734/%EB%A1%9C%ED%83%80%EB%A6%AC%EC%8B%9D%EB%8B%B9,34.741467,127.727529",
         "fare": {
           "value": 1600
         },
@@ -5184,7 +5246,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EB%82%AD%EB%A7%8C%EC%B9%B4%ED%8E%98,34.738733,127.740359/%EC%97%AC%EC%88%98%EB%8B%B9,34.739899,127.735349",
         "fare": {
           "value": 1600
         },
@@ -5204,8 +5265,7 @@
           34.94553910858391
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_daewon>sc_brewworks:road": {
         "seconds": 234,
@@ -5220,8 +5280,7 @@
           34.94729763840284
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_daewon>sc_memory:road": {
         "seconds": 27,
@@ -5236,8 +5295,7 @@
           34.9495990651925
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_daewon>sc_cheongsu:road": {
         "seconds": 395,
@@ -5252,8 +5310,7 @@
           34.955785679231525
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_daewon>sc_drama:road": {
         "seconds": 849,
@@ -5268,8 +5325,7 @@
           34.957084203504884
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_daewon>sc_garden:road": {
         "seconds": 497,
@@ -5284,8 +5340,7 @@
           34.9292183256846
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_daewon>sc_nanulteo:road": {
         "seconds": 644,
@@ -5300,8 +5355,7 @@
           34.9325767938184
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_daewon>sc_gijeok:road": {
         "seconds": 275,
@@ -5316,8 +5370,7 @@
           34.9498034578734
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gunbong>sc_brewworks:road": {
         "seconds": 222,
@@ -5332,8 +5385,7 @@
           34.94729763840284
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gunbong>sc_memory:road": {
         "seconds": 265,
@@ -5348,8 +5400,7 @@
           34.9495990651925
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gunbong>sc_cheongsu:road": {
         "seconds": 486,
@@ -5364,8 +5415,7 @@
           34.955785679231525
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gunbong>sc_drama:road": {
         "seconds": 892,
@@ -5380,8 +5430,7 @@
           34.957084203504884
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gunbong>sc_garden:road": {
         "seconds": 435,
@@ -5396,8 +5445,7 @@
           34.9292183256846
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gunbong>sc_nanulteo:road": {
         "seconds": 532,
@@ -5412,8 +5460,7 @@
           34.9325767938184
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gunbong>sc_daewon:road": {
         "seconds": 225,
@@ -5428,8 +5475,7 @@
           34.95010189963333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gunbong>sc_gijeok:road": {
         "seconds": 319,
@@ -5444,8 +5490,7 @@
           34.9498034578734
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_memory>sc_gunbong:road": {
         "seconds": 165,
@@ -5460,8 +5505,7 @@
           34.94553910858391
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_memory>sc_brewworks:road": {
         "seconds": 232,
@@ -5476,8 +5520,7 @@
           34.94729763840284
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_memory>sc_cheongsu:road": {
         "seconds": 377,
@@ -5492,8 +5535,7 @@
           34.955785679231525
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_memory>sc_drama:road": {
         "seconds": 847,
@@ -5508,8 +5550,7 @@
           34.957084203504884
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_memory>sc_garden:road": {
         "seconds": 482,
@@ -5524,8 +5565,7 @@
           34.9292183256846
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_memory>sc_nanulteo:road": {
         "seconds": 627,
@@ -5540,8 +5580,7 @@
           34.9325767938184
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_memory>sc_daewon:road": {
         "seconds": 36,
@@ -5556,8 +5595,7 @@
           34.95010189963333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_memory>sc_gijeok:road": {
         "seconds": 273,
@@ -5572,8 +5610,7 @@
           34.9498034578734
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_cheongsu>sc_gunbong:road": {
         "seconds": 493,
@@ -5588,8 +5625,7 @@
           34.94553910858391
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_cheongsu>sc_brewworks:road": {
         "seconds": 528,
@@ -5604,8 +5640,7 @@
           34.94729763840284
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_cheongsu>sc_memory:road": {
         "seconds": 428,
@@ -5620,8 +5655,7 @@
           34.9495990651925
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_cheongsu>sc_drama:road": {
         "seconds": 1117,
@@ -5636,8 +5670,7 @@
           34.957084203504884
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_cheongsu>sc_garden:road": {
         "seconds": 793,
@@ -5652,8 +5685,7 @@
           34.9292183256846
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_cheongsu>sc_nanulteo:road": {
         "seconds": 972,
@@ -5668,8 +5700,7 @@
           34.9325767938184
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_cheongsu>sc_daewon:road": {
         "seconds": 382,
@@ -5684,8 +5715,7 @@
           34.95010189963333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_cheongsu>sc_gijeok:road": {
         "seconds": 569,
@@ -5700,8 +5730,7 @@
           34.9498034578734
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_brewworks>sc_gunbong:road": {
         "seconds": 181,
@@ -5716,8 +5745,7 @@
           34.94553910858391
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_brewworks>sc_memory:road": {
         "seconds": 264,
@@ -5732,8 +5760,7 @@
           34.9495990651925
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_brewworks>sc_cheongsu:road": {
         "seconds": 544,
@@ -5748,8 +5775,7 @@
           34.955785679231525
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_brewworks>sc_drama:road": {
         "seconds": 763,
@@ -5764,8 +5790,7 @@
           34.957084203504884
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_brewworks>sc_garden:road": {
         "seconds": 569,
@@ -5780,8 +5805,7 @@
           34.9292183256846
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_brewworks>sc_nanulteo:road": {
         "seconds": 441,
@@ -5796,8 +5820,7 @@
           34.9325767938184
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_brewworks>sc_daewon:road": {
         "seconds": 224,
@@ -5812,8 +5835,7 @@
           34.95010189963333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_brewworks>sc_gijeok:road": {
         "seconds": 189,
@@ -5828,8 +5850,7 @@
           34.9498034578734
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_nanulteo>sc_gunbong:road": {
         "seconds": 525,
@@ -5844,8 +5865,7 @@
           34.94553910858391
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_nanulteo>sc_brewworks:road": {
         "seconds": 424,
@@ -5860,8 +5880,7 @@
           34.94729763840284
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_nanulteo>sc_memory:road": {
         "seconds": 685,
@@ -5876,8 +5895,7 @@
           34.9495990651925
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_nanulteo>sc_cheongsu:road": {
         "seconds": 825,
@@ -5892,8 +5910,7 @@
           34.955785679231525
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_nanulteo>sc_drama:road": {
         "seconds": 712,
@@ -5908,8 +5925,7 @@
           34.957084203504884
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_nanulteo>sc_garden:road": {
         "seconds": 281,
@@ -5924,8 +5940,7 @@
           34.9292183256846
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_nanulteo>sc_daewon:road": {
         "seconds": 645,
@@ -5940,8 +5955,7 @@
           34.95010189963333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_nanulteo>sc_gijeok:road": {
         "seconds": 586,
@@ -5956,8 +5970,7 @@
           34.9498034578734
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_drama>sc_gunbong:road": {
         "seconds": 837,
@@ -5972,8 +5985,7 @@
           34.94553910858391
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_drama>sc_brewworks:road": {
         "seconds": 760,
@@ -5988,8 +6000,7 @@
           34.94729763840284
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_drama>sc_memory:road": {
         "seconds": 844,
@@ -6004,8 +6015,7 @@
           34.9495990651925
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_drama>sc_cheongsu:road": {
         "seconds": 1023,
@@ -6020,8 +6030,7 @@
           34.955785679231525
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_drama>sc_garden:road": {
         "seconds": 830,
@@ -6036,8 +6045,7 @@
           34.9292183256846
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_drama>sc_nanulteo:road": {
         "seconds": 682,
@@ -6052,8 +6060,7 @@
           34.9325767938184
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_drama>sc_daewon:road": {
         "seconds": 803,
@@ -6068,8 +6075,7 @@
           34.95010189963333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_drama>sc_gijeok:road": {
         "seconds": 628,
@@ -6084,8 +6090,7 @@
           34.9498034578734
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_garden>sc_gunbong:road": {
         "seconds": 361,
@@ -6100,8 +6105,7 @@
           34.94553910858391
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_garden>sc_brewworks:road": {
         "seconds": 439,
@@ -6116,8 +6120,7 @@
           34.94729763840284
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_garden>sc_memory:road": {
         "seconds": 588,
@@ -6132,8 +6135,7 @@
           34.9495990651925
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_garden>sc_cheongsu:road": {
         "seconds": 660,
@@ -6148,8 +6150,7 @@
           34.955785679231525
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_garden>sc_drama:road": {
         "seconds": 778,
@@ -6164,8 +6165,7 @@
           34.957084203504884
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_garden>sc_nanulteo:road": {
         "seconds": 217,
@@ -6180,8 +6180,7 @@
           34.9325767938184
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_garden>sc_daewon:road": {
         "seconds": 548,
@@ -6196,8 +6195,7 @@
           34.95010189963333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_garden>sc_gijeok:road": {
         "seconds": 642,
@@ -6212,8 +6210,7 @@
           34.9498034578734
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gijeok>sc_gunbong:road": {
         "seconds": 263,
@@ -6228,8 +6225,7 @@
           34.94553910858391
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gijeok>sc_brewworks:road": {
         "seconds": 187,
@@ -6244,8 +6240,7 @@
           34.94729763840284
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gijeok>sc_memory:road": {
         "seconds": 269,
@@ -6260,8 +6255,7 @@
           34.9495990651925
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gijeok>sc_cheongsu:road": {
         "seconds": 476,
@@ -6276,8 +6270,7 @@
           34.955785679231525
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gijeok>sc_drama:road": {
         "seconds": 692,
@@ -6292,8 +6285,7 @@
           34.957084203504884
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gijeok>sc_garden:road": {
         "seconds": 622,
@@ -6308,8 +6300,7 @@
           34.9292183256846
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gijeok>sc_nanulteo:road": {
         "seconds": 598,
@@ -6324,8 +6315,7 @@
           34.9325767938184
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_gijeok>sc_daewon:road": {
         "seconds": 229,
@@ -6340,8 +6330,7 @@
           34.95010189963333
         ],
         "provider": "kakao",
-        "status": "ok",
-        "sourceUrl": "https://developers.kakaomobility.com/guide/navi-api/destinations.html"
+        "status": "ok"
       },
       "sc_memory>sc_brewworks:transit": {
         "seconds": 489,
@@ -6357,7 +6346,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EA%B8%B0%EC%96%B5%EA%B3%B5%EC%9E%A51945,34.949599,127.489915/%EB%B8%8C%EB%A3%A8%EC%9B%8D%EC%8A%A4,34.947298,127.498385",
         "fare": {
           "value": 1600
         },
@@ -6378,7 +6366,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EB%B8%8C%EB%A3%A8%EC%9B%8D%EC%8A%A4,34.947298,127.498385/%EB%8C%80%EC%9B%90%EC%8B%9D%EB%8B%B9,34.950102,127.490172",
         "fare": {
           "value": 1600
         },
@@ -6399,7 +6386,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EB%82%98%EB%88%8C%ED%84%B0,34.932577,127.514057/%EB%B8%8C%EB%A3%A8%EC%9B%8D%EC%8A%A4,34.947298,127.498385",
         "fare": {
           "value": 1600
         },
@@ -6420,7 +6406,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EC%88%9C%EC%B2%9C%EB%A7%8C%EA%B5%AD%EA%B0%80%EC%A0%95%EC%9B%90,34.929218,127.498902/%EB%8C%80%EC%9B%90%EC%8B%9D%EB%8B%B9,34.950102,127.490172",
         "fare": {
           "value": 1600
         },
@@ -6441,7 +6426,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EC%88%9C%EC%B2%9C%EB%93%9C%EB%9D%BC%EB%A7%88%EC%B4%AC%EC%98%81%EC%9E%A5,34.957084,127.538034/%EB%82%98%EB%88%8C%ED%84%B0,34.932577,127.514057",
         "fare": {
           "value": 1600
         },
@@ -6462,7 +6446,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EB%B8%8C%EB%A3%A8%EC%9B%8D%EC%8A%A4,34.947298,127.498385/%EA%B8%B0%EC%96%B5%EA%B3%B5%EC%9E%A51945,34.949599,127.489915",
         "fare": {
           "value": 1600
         },
@@ -6483,7 +6466,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EB%8C%80%EC%9B%90%EC%8B%9D%EB%8B%B9,34.950102,127.490172/%EB%B8%8C%EB%A3%A8%EC%9B%8D%EC%8A%A4,34.947298,127.498385",
         "fare": {
           "value": 1600
         },
@@ -6504,7 +6486,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EB%82%98%EB%88%8C%ED%84%B0,34.932577,127.514057/%EC%88%9C%EC%B2%9C%EB%93%9C%EB%9D%BC%EB%A7%88%EC%B4%AC%EC%98%81%EC%9E%A5,34.957084,127.538034",
         "fare": {
           "value": 1600
         },
@@ -6525,7 +6506,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EB%8C%80%EC%9B%90%EC%8B%9D%EB%8B%B9,34.950102,127.490172/%EC%88%9C%EC%B2%9C%EB%A7%8C%EA%B5%AD%EA%B0%80%EC%A0%95%EC%9B%90,34.929218,127.498902",
         "fare": {
           "value": 1600
         },
@@ -6546,7 +6526,6 @@
         ],
         "provider": "kakao",
         "status": "ok",
-        "sourceUrl": "https://map.kakao.com/link/by/traffic/%EB%B8%8C%EB%A3%A8%EC%9B%8D%EC%8A%A4,34.947298,127.498385/%EB%82%98%EB%88%8C%ED%84%B0,34.932577,127.514057",
         "fare": {
           "value": 1600
         },
@@ -6576,11 +6555,49 @@
         "minutes": 20,
         "mode": "walk",
         "note": "박람회장 내 아쿠아플라넷→아르떼뮤지엄 도보 약 15~20분 계획."
+      },
+      "sc_tteok>sc_goodies": {
+        "minutes": 20
+      },
+      "sc_tteok>sc_hwawol": {
+        "minutes": 20
+      },
+      "sc_goodies>sc_garden": {
+        "minutes": 20
+      },
+      "sc_hwawol>sc_garden": {
+        "minutes": 20
+      },
+      "ys_stay_venezia>ys_insect": {
+        "minutes": 30,
+        "note": "자산공원 진입·주차·전시실까지 이동 여유를 포함한 계획치입니다."
       }
     },
     "researchNotes": [
-      "실제 예약·실시간 교통 정보가 아닙니다.",
-      "식사·휴식 미선택 시 체류시간만 확보하고, 지도는 다음 확정 장소로 바로 연결합니다."
-    ]
+      "2026-10-28 네이버 공유 저장 목록의 식당·카페를 확인했습니다.",
+      "기존 추가 추천 식당·카페를 함께 유지하며 관광·숙소는 확정 방문지만 제공합니다.",
+      "좌표 일부와 이동시간은 계획용 추정이며 지도 연결선은 실제 도로 경로가 아닙니다."
+    ],
+    "map": {
+      "tileUrl": "https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
+      "bounds": [
+        [
+          34.4,
+          126.9
+        ],
+        [
+          35.7,
+          129.5
+        ]
+      ],
+      "attribution": "© OpenStreetMap contributors · Tiles OSM France · HOT"
+    },
+    "savedList": {
+      "url": "https://naver.me/x4l3DYMu",
+      "checkedAt": "2026-10-28",
+      "total": 41,
+      "included": 37,
+      "note": "저장 목록의 식당·카페는 모두 포함했습니다. 관광·숙소는 확정 방문지만 유지해 다른 호텔 3곳과 아이뮤지엄은 제외했습니다."
+    }
   }
 ]

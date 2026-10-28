@@ -43,9 +43,9 @@ elif gh repo view "$repo" >/dev/null 2>&1; then
   echo "$repo 저장소가 이미 있습니다. 새 이름을 지정하세요: bash deploy.sh yeosu-suncheon-trip-2"; exit 1
 fi
 # 이 프로젝트의 소스와 빌드 결과만 커밋합니다.
-git add .gitignore README.md QA.md deploy.sh publish.sh build.py ui.css ui.js map.css map.js engine.js data.json map-fragment.html dist/index.html dist/.nojekyll test-engine.js test-build.py test-browser.html
+git add .gitignore README.md QA.md deploy.sh publish.sh build.py ui.css ui.js map.css map.js engine.js data.json map-fragment.html dist/index.html dist/.nojekyll test-engine.js test-build.py test-browser.html vendor/leaflet/leaflet.js vendor/leaflet/leaflet.css vendor/leaflet/LICENSE
 if ! git diff --cached --quiet; then
-  git -c user.name="$owner" -c user.email="$owner@users.noreply.github.com" commit -m 'Use fixed car itinerary with selectable meals, cafes and Yeosu lodging'
+  git -c user.name="$owner" -c user.email="$owner@users.noreply.github.com" commit -m 'Update Venezia trip, saved dining choices and interactive map'
 fi
 if [ -z "$remote" ]; then
   gh repo create "$repo" --public --source=. --remote=origin --description '2026년 11월 28–30일 여수·순천 여행 지도와 일정 편집기'
