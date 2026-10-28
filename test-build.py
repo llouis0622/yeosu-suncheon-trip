@@ -40,3 +40,6 @@ assert 'tile.openstreetmap.fr/hot/' in html and 'OSM France' in html
 assert 'Leaflet 1.9.4' in html and 'Redistribution and use' in html
 assert 'map.kakao.com' not in html and 'map.daum.net' not in html
 assert "['fixed','관광·숙소']" in html
+
+assert 'id="detail"' not in html, 'venue popup has been removed'
+assert 'aria-controls="guide-' in html and 'class="naver-link"' in html

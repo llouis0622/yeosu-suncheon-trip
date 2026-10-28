@@ -6580,16 +6580,6 @@
     ],
     "map": {
       "tileUrl": "https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png",
-      "bounds": [
-        [
-          34.4,
-          126.9
-        ],
-        [
-          35.7,
-          129.5
-        ]
-      ],
       "attribution": "© OpenStreetMap contributors · Tiles OSM France · HOT"
     },
     "savedList": {

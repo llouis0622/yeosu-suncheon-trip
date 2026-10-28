@@ -106,9 +106,22 @@ async function layoutSuite(w,h){
  click(d,'[data-action="schedule-info"]');const dialog=rect(d,'#dialog');
  log(dialog.width<=w&&dialog.height<=h,'warning dialog fits viewport');
  log(d.querySelector('#dialogBody').textContent.includes('휴게소 식사 30분'),'return lunch explanation is visible');click(d,'#closeDialog');
- click(d,'#pane-places');change(d,'#activeSlot','');click(d,'[data-category="fixed"]');click(d,'[data-detail="ys_stay_venezia"]');
- log(d.querySelector('#detailBody').textContent.includes('확정 숙소'),'hotel detail is fixed');
- const detail=rect(d,'#detail');log(detail.width<=w&&detail.height<=h,'place detail fits viewport');click(d,'#closeDetail');
+ click(d,'#pane-places');change(d,'#activeSlot','');click(d,'[data-category="fixed"]');
+ if(!isPhone)click(d,'#pane-split');
+ const cardSelector='[data-card="ys_odongdo"]',beforeGuide=rect(d,cardSelector).height;
+ log(d.querySelector(cardSelector+' .naver-link').href.startsWith('https://map.naver.com/'),'Naver link is directly available before expansion');
+ click(d,cardSelector+' .card-title');
+ log(!d.querySelector('dialog[open]')&&!d.querySelector('#guide-ys_odongdo').hidden,'title opens inline guide without popup');
+ log(d.querySelector(cardSelector+' .card-title').getAttribute('aria-expanded')==='true'&&rect(d,cardSelector).height>beforeGuide,'expanded guide grows the same card downward');
+ log(d.querySelector('#guide-ys_odongdo').textContent.length<500,'guide keeps address, hours and brief practical information');
+ log(d.documentElement.scrollWidth<=w+1&&d.documentElement.scrollHeight<=h+1,'expanded guide stays inside responsive pane');
+ click(d,cardSelector+' .guide-toggle');
+ log(d.querySelector('#guide-ys_odongdo').hidden&&d.querySelector(cardSelector+' .card-title').getAttribute('aria-expanded')==='false','guide button collapses inline information');
+ click(d,'[data-card="ys_stay_venezia"] .guide-toggle');
+ log(!d.querySelector('dialog[open]')&&d.querySelector('#guide-ys_stay_venezia').textContent.includes('확정 숙소'),'hotel information is inline and fixed');
+ click(d,cardSelector+' .card-title');
+ log(d.querySelector('#guide-ys_stay_venezia').hidden,'opening another guide keeps one expanded card');
+ click(d,cardSelector+' .guide-toggle');
  click(d,'#pane-map');click(d,'#mapPlay');await tick();
  log(d.querySelector('#mapPlay').getAttribute('aria-pressed')==='true'&&!d.querySelector('#playCaption').hidden,'route animation starts');
  click(d,'#mapPlay');log(d.querySelector('#mapPlay').getAttribute('aria-pressed')==='false','animation pauses');
@@ -126,6 +139,15 @@ async function rotationSuite(w,h){
  frame.width=w;frame.height=h;await waitUntil(()=>d.querySelector('#main').dataset.layout==='rows'&&d.defaultView.innerWidth===w);await tick();
  log(d.querySelector('#main').dataset.layout==='rows'&&ratios(d).every((v,i)=>near(v,before[i])),'rotation back restores portrait proportions: '+JSON.stringify({actual:ratios(d),expected:before,layout:d.querySelector('#main').dataset.layout}));
 }
+async function mapRangeSuite(){
+ const d=await load(1280,800);click(d,'#pane-map');await tick();
+ for(let i=0;i<12;i++){click(d,'#zoomOut');await tick();await waitUntil(()=>!d.querySelector('#mapCanvas').classList.contains('leaflet-zoom-anim'));}
+ const a=rect(d,'[data-pin="busan"]'),b=rect(d,'[data-pin="sc_garden"]');
+ log(Math.hypot(a.x-b.x,a.y-b.y)<15,'zoom out reaches a world overview beyond the old regional minimum');
+ log(!d.querySelector('.leaflet-tile'),'world-range test makes no external tile requests');
+ click(d,'#fitBtn');await tick();
+ log(d.querySelectorAll('[data-route-from]').length>0,'trip routes remain after returning from the world overview');
+}
 async function sharingSuite(){
  const d=await load(1280,800);click(d,'[data-slot="d0-bakery"]');click(d,'[data-use="sc_goodies"]');
  const current=localStorage.getItem(key),encoded=btoa(unescape(encodeURIComponent(current))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -137,7 +159,7 @@ async function sharingSuite(){
 document.querySelector('#open').onclick=async()=>{const[w,h]=document.querySelector('#size').value.split(' × ').map(Number);await load(w,h);status.textContent=w+' × '+h;};
 document.querySelector('#run').onclick=async()=>{
  const button=document.querySelector('#run');button.disabled=true;checks=failures=0;errors=[];output.textContent='Real Chromium layout; synthetic pointer/keyboard events. Physical devices are not covered.\n';
- try{for(const[w,h]of sizes){status.textContent=w+' × '+h+' 검사 중';await layoutSuite(w,h);}for(const[w,h]of [[768,1024],[820,1180],[1024,1366]])await rotationSuite(w,h);await sharingSuite();log(errors.length===0,'no application errors: '+errors.join('; '));}
+ try{for(const[w,h]of sizes){status.textContent=w+' × '+h+' 검사 중';await layoutSuite(w,h);}for(const[w,h]of [[768,1024],[820,1180],[1024,1366]])await rotationSuite(w,h);await sharingSuite();await mapRangeSuite();log(errors.length===0,'no application errors: '+errors.join('; '));}
  catch(e){failures++;output.textContent+='ERROR '+e.stack+'\n';}
  finally{button.disabled=false;status.textContent=checks+' checks · '+failures+' failures';output.dataset.checks=checks;output.dataset.failures=failures;localStorage.removeItem(key);}
 };

@@ -80,11 +80,11 @@ function resizeMap(){
  cancelAnimationFrame(resizeFrame);resizeFrame=requestAnimationFrame(()=>{if(!travelMap||!$('mapCanvas').clientWidth||!$('mapCanvas').clientHeight)return;travelMap.invalidateSize({pan:false});if(state.fitMode&&!state.playing)fitMap(state.fitMode,false);updateLabels();});
 }
 function setupMap(){
- travelMap=L.map('mapCanvas',{zoomControl:false,attributionControl:true,minZoom:7,maxZoom:18,zoomSnap:.25,zoomDelta:1,maxBounds:region().map.bounds,maxBoundsViscosity:.9,scrollWheelZoom:true});
+ travelMap=L.map('mapCanvas',{zoomControl:false,attributionControl:true,minZoom:2,maxZoom:18,zoomSnap:.25,zoomDelta:1,worldCopyJump:true,scrollWheelZoom:true});
  travelMap.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>');
  const test=new URLSearchParams(location.search).get('trip-test')==='1';
  if(!test){
-  tileLayer=L.tileLayer(region().map.tileUrl,{bounds:region().map.bounds,minZoom:7,maxZoom:18,noWrap:true,keepBuffer:1,updateWhenIdle:true,referrerPolicy:'strict-origin-when-cross-origin',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Tiles <a href="https://www.openstreetmap.fr/">OSM France</a> · <a href="https://www.hotosm.org/">HOT</a>'}).addTo(travelMap);
+  tileLayer=L.tileLayer(region().map.tileUrl,{minZoom:2,maxZoom:18,noWrap:false,keepBuffer:1,updateWhenIdle:true,referrerPolicy:'strict-origin-when-cross-origin',attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Tiles <a href="https://www.openstreetmap.fr/">OSM France</a> · <a href="https://www.hotosm.org/">HOT</a>'}).addTo(travelMap);
   let failed=0,loaded=0;$('mapCanvas').dataset.tiles='loading';
   tileLayer.on('tileerror',()=>{failed++;$('mapCanvas').dataset.tiles='error';$('mapNotice').hidden=false;});
   tileLayer.on('tileload',()=>{loaded++;if(!failed){$('mapCanvas').dataset.tiles='ready';$('mapNotice').hidden=true;}});

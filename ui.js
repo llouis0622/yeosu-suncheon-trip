@@ -3,7 +3,7 @@ const DATA=JSON.parse(document.getElementById('travelData').textContent),E=TripE
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CATS={sight:'관광',food:'음식점',cafe:'카페',hotel:'숙소',origin:'부산 출발·도착'},MODES={car:'자차',walk:'도보'};
 const STORAGE_KEY=location.search.includes('trip-test=1')?'yeosu-suncheon-fixed-test':'yeosu-suncheon-fixed-v5';
-const state={region:DATA[0].id,day:0,routeDay:0,selected:null,type:'all',query:'',city:'all',activeSlot:'',pane:'split',plannerExpanded:false,plannerView:'sequence',camera:{x:0,y:0,w:500,h:650},width:600,height:650,tween:null,pins:[],flows:[],playing:false,playIndex:0,elapsed:0,flowClock:0,fromPoint:null,playback:null};
+const state={region:DATA[0].id,day:0,routeDay:0,selected:null,expandedPlace:null,type:'all',query:'',city:'all',activeSlot:'',pane:'split',plannerExpanded:false,plannerView:'sequence',camera:{x:0,y:0,w:500,h:650},width:600,height:650,tween:null,pins:[],flows:[],playing:false,playIndex:0,elapsed:0,flowClock:0,fromPoint:null,playback:null};
 const region=()=>DATA[0],point=id=>region().points.find(p=>p.id===id),motion=matchMedia('(prefers-reduced-motion: reduce)');
 let selectedPlan=E.createPlan(region()),result,undo=[],redo=[],storageOk=true,toastTimer,pointers=new Map(),gesture=null,ignoreClickUntil=0,pendingTap=null,lastFrame=0,paintTime=0;
 const plan=()=>selectedPlan;
@@ -30,10 +30,28 @@ function renderHeader(){
 }
 function candidatePoints(){return region().points.filter(p=>p.type!=='origin').sort((a,b)=>Number(!!b.savedByUser)-Number(!!a.savedByUser));}
 function visiblePoints(){return candidatePoints().filter(p=>(state.city==='all'||p.city===state.city)&&(state.type==='all'||p.type===state.type||state.type==='fixed'&&['sight','hotel'].includes(p.type))&&(!state.activeSlot||(state.activeSlot==='hotel'?p.type==='hotel':E.eligible(region(),state.activeSlot,p)))&&(!state.query||[p.name,p.city,p.area,p.desc,...(p.tags||[])].join(' ').toLowerCase().includes(state.query.toLowerCase())));}
+function brief(text,limit=100){const value=String(text||'').trim();return value.length>limit?value.slice(0,limit-1).trimEnd()+'…':value;}
+function inlineGuide(p){
+ const hours=p.type==='hotel'?'확정 숙소 · 같은 숙소에서 2박':p.hours?.note||'운영시간은 네이버지도에서 확인하세요.';
+ const note=p.type==='hotel'?'객실별 바다 전망과 욕조 유무는 예약한 객실 기준으로 확인하세요.':p.accessNote;
+ const source=(p.links||[]).find(l=>/^https?:\/\//.test(l.url)&&!/(naver\.me|map\.naver)/.test(l.url));
+ return `<dl><div><dt>주소</dt><dd>${esc(p.address||p.area)}</dd></div><div><dt>시간</dt><dd>${esc(brief(hours,110))}</dd></div>${note?`<div><dt>참고</dt><dd>${esc(brief(note,100))}</dd></div>`:''}</dl>${/근사|대략|미검증/.test(p.coordStatus||'')?'<p class="guide-note">지도 위치는 근사치입니다. 입구는 네이버지도에서 확인하세요.</p>':''}${source?`<a class="guide-source" href="${esc(source.url)}" target="_blank" rel="noopener noreferrer">추가 안내 ↗</a>`:''}`;
+}
 function card(p){
  const used=p.type==='hotel'?plan().hotel===p.id:Object.values(plan().choices).includes(p.id)||result.steps.some(x=>x.poi===p.id);
- const available=p.type!=='hotel'&&allSlots().some(s=>E.eligible(region(),s.id,p)),targetDay=slot(state.activeSlot)?.day??state.day;
- return `<article class="candidate ${state.selected===p.id?'focused':''}" data-card="${p.id}"><div class="candidate-kicker"><span>${esc(p.city)} · ${CATS[p.type]}${p.savedByUser?' · ★ 저장':''}</span>${used?'<span class="selected-label">✓ 선택됨</span>':''}</div><button class="card-title" data-detail="${p.id}">${esc(p.name)}</button><p class="candidate-meta">${esc(p.area)}${p.type==='hotel'?' · 여수 2박':''}</p><p class="candidate-description">${esc(p.desc)}</p>${p.type==='hotel'?`<p class="room-note">${esc(p.room?.name)} · ${p.room?.bathStatus==='confirmed'?'욕조 안내 확인':'욕조·객실 조건 확인'}</p>`:''}${E.isClosed(p,targetDay)?`<p class="closure-note">${E.date(targetDay)} 휴무 안내</p>`:''}<div class="candidate-actions">${available?`<button class="choose" data-use="${p.id}">${p.type==='hotel'?(used?'선택한 숙소':'이 숙소로 2박'):state.activeSlot?'이 장소 선택':'일정에 선택'}</button>`:`<span class="fixed-badge">${p.type==='hotel'?'확정 숙소 · 여수 2박':used?'확정 방문지':'참고 후보'}</span>`}<button data-detail="${p.id}">상세·지도 ↗</button></div></article>`;
+ const available=p.type!=='hotel'&&allSlots().some(s=>E.eligible(region(),s.id,p)),targetDay=slot(state.activeSlot)?.day??state.day,expanded=state.expandedPlace===p.id;
+ const toggle=`data-expand="${p.id}" aria-expanded="${expanded}" aria-controls="guide-${p.id}"`;
+ return `<article class="candidate ${state.selected===p.id?'focused':''} ${expanded?'is-expanded':''}" data-card="${p.id}"><div class="candidate-kicker"><span>${esc(p.city)} · ${CATS[p.type]}${p.savedByUser?' · ★ 저장':''}</span>${used?'<span class="selected-label">✓ 선택됨</span>':''}</div><button class="card-title" ${toggle}>${esc(p.name)}</button><p class="candidate-meta">${esc(p.area)}${p.type==='hotel'?' · 여수 2박':''}</p><p class="candidate-description">${esc(brief(p.desc))}</p>${E.isClosed(p,targetDay)?`<p class="closure-note">${E.date(targetDay)} 휴무 안내</p>`:''}${available?'':`<span class="fixed-badge">${p.type==='hotel'?'확정 숙소 · 여수 2박':used?'확정 방문지':'참고 후보'}</span>`}<div class="candidate-actions">${available?`<button class="choose" data-use="${p.id}">${state.activeSlot?'이 장소 선택':'일정에 선택'}</button>`:''}<a class="naver-link" href="${mapUrl(p)}" target="_blank" rel="noopener noreferrer" aria-label="${esc(p.name)} 네이버지도">네이버지도 ↗</a><button class="guide-toggle" ${toggle}>${expanded?'안내 접기 ⌃':'안내 ⌄'}</button></div><div id="guide-${p.id}" class="inline-guide" ${expanded?'':'hidden'}>${inlineGuide(p)}</div></article>`;
+}
+function toggleCard(id){
+ const p=point(id);if(!p)return;
+ state.expandedPlace=state.expandedPlace===id?null:id;
+ for(const el of $('candidateList').querySelectorAll('[data-card]')){
+  const expanded=el.dataset.card===state.expandedPlace;el.classList.toggle('is-expanded',expanded);el.querySelector('.inline-guide').hidden=!expanded;
+  el.querySelectorAll('[data-expand]').forEach(b=>b.setAttribute('aria-expanded',String(expanded)));
+  el.querySelector('.guide-toggle').textContent=expanded?'안내 접기 ⌃':'안내 ⌄';
+ }
+ if(state.expandedPlace){pauseMap();state.selected=id;renderPins();focusMap(p);}
 }
 function renderCandidatePanel(){
  const sc=$('candidateList'),top=sc?.scrollTop||0,left=sc?.scrollLeft||0;
@@ -43,7 +61,7 @@ function renderCandidatePanel(){
 function renderCandidateList(){const list=visiblePoints();$('candidateCount').textContent=list.length+'곳';$('candidateList').innerHTML=list.map(card).join('')||'<p class="empty">조건에 맞는 후보가 없습니다.</p>';}
 function openSlot(id){
  if(id!=='hotel'&&!slot(id))return;
- if($('detail').open)$('detail').close();if($('dialog').open)$('dialog').close();
+ if($('dialog').open)$('dialog').close();
  state.activeSlot=id;state.type='all';state.city='all';state.query='';
  if(slot(id)){state.day=slot(id).day;state.routeDay=state.day;}
  if(compactWorkspace()||state.pane==='schedule')setPane('places');
@@ -55,12 +73,12 @@ function selectCandidate(id){
  if(p.type==='hotel'){openDetail(id);return;}
  if(state.activeSlot&&E.eligible(region(),state.activeSlot,p)){applyChoice(state.activeSlot,id);return;}
  const valid=allSlots().filter(s=>E.eligible(region(),s.id,p));if(!valid.length)return;
- if($('detail').open)$('detail').close();
+
  modal(p.name+' · 넣을 시간',`<p>방문 순서와 체류시간은 유지됩니다.</p><div class="choice-list">${valid.map(s=>`<button data-pick-slot="${s.id}" data-poi="${id}"><b>${slotLabel(s)}</b><span>${durationLabel(s.duration)} · ${esc(point(plan().choices[s.id])?.name||'미선택')}</span></button>`).join('')}</div>`);
 }
 function applyChoice(id,poi){
  if(!E.eligible(region(),id,point(poi)))return;
- if($('dialog').open)$('dialog').close();if($('detail').open)$('detail').close();state.selected=poi;
+ if($('dialog').open)$('dialog').close();state.selected=poi;
  if(slot(id)){state.day=slot(id).day;state.routeDay=state.day;}
  mutate(p=>{p.choices[id]=poi;if(id==='d2-lunch')p.lunchMode='nearby';});
  if(compactWorkspace())setPane('schedule');
@@ -69,11 +87,14 @@ function applyChoice(id,poi){
 function clearSlot(id){if(!slot(id))return;mutate(p=>p.choices[id]=null);toast('장소 선택을 해제했습니다. 체류시간은 유지됩니다.');}
 function modal(title,html){$('dialogTitle').textContent=title;$('dialogBody').innerHTML=html;if(!$('dialog').open)$('dialog').showModal();}
 function openDetail(id){
- const p=point(id);if(!p)return;pauseMap();state.selected=id;renderPins();focusMap(p);
- const available=p.type!=='hotel'&&allSlots().some(s=>E.eligible(region(),s.id,p));
- $('detailTitle').textContent=p.name;
- $('detailBody').innerHTML=`<p class="detail-meta">${esc(p.city)} · ${CATS[p.type]} · ${esc(p.area)}</p><p>${esc(p.desc)}</p>${p.savedByUser?'<p class="fine">★ 보내주신 네이버 저장 목록에 있는 장소입니다.</p>':''}<p class="fine">${esc(p.address||'')}</p>${p.type==='hotel'?`<div class="notice"><b>${esc(p.room?.name)}</b><p>${esc(p.room?.bathDescription)}</p><p>${esc(p.costNote)}</p></div>`:`<p>${esc(p.hours?.note||'운영시간 확인 필요')}</p>`}${p.accessNote?`<p class="fine">${esc(p.accessNote)}</p>`:''}<p class="fine">${esc(p.coordStatus||'지도 출입구는 길찾기에서 확인할 수 있습니다.')}</p><div class="detail-links"><a target="_blank" rel="noopener noreferrer" href="${mapUrl(p)}">네이버 지도 ↗</a>${(p.links||[]).filter(l=>/^https?:\/\//.test(l.url)).map(l=>`<a target="_blank" rel="noopener noreferrer" href="${esc(l.url)}">${esc(l.label)} ↗</a>`).join('')}</div>${available?`<button class="primary full" data-use="${p.id}">${p.type==='hotel'?'이 숙소로 2박':'이 장소 선택'}</button>`:'<p class="fine">'+(p.type==='hotel'?'이번 여행의 확정 숙소로 2박 동선에 반영되어 있습니다.':result.steps.some(s=>s.poi===p.id)?'확정된 방문 순서에 포함되어 있습니다.':'이번 일정에는 별도 방문 시간이 없는 참고 후보입니다.')+'</p>'}`;
- if(!$('detail').open)$('detail').showModal();
+ const p=point(id);if(!p)return;pauseMap();state.selected=id;focusMap(p);
+ if(p.type==='origin'){toast(p.name+' · 정확한 집 주소가 아닌 동네 기준점입니다.');return;}
+ if($('dialog').open)$('dialog').close();
+ if(!visiblePoints().some(q=>q.id===id)){state.activeSlot='';state.type='all';state.city='all';state.query='';}
+ state.expandedPlace=id;
+ if(compactWorkspace()||['map','schedule'].includes(state.pane))setPane('places');
+ renderCandidatePanel();renderPins();
+ requestAnimationFrame(()=>{const card=$('candidateList').querySelector(`[data-card="${id}"]`);if(card){card.scrollIntoView({block:'nearest',inline:'nearest'});card.querySelector('.card-title').focus({preventScroll:true});}});
 }
 function blockAction(b,i){return b.kind==='reststop'?'data-action="lunch-options"':b.slotId?`data-slot="${b.slotId}"`:b.kind==='travel'?`data-travel="${i}"`:b.poi?`data-detail="${b.poi}"`:'';}
 function sequenceHtml(d){return d.blocks.map((b,i)=>{
@@ -94,7 +115,7 @@ function scheduleInfo(){modal('이동·운영시간 확인',`<div class="summary
 function saveDialog(){modal('선택 저장·공유',`<p>${storageOk?'현재 브라우저에 선택이 자동 저장됩니다.':'브라우저 자동 저장이 제한되어 있습니다. JSON 저장을 이용하세요.'} 다른 기기에는 공유 링크나 JSON 파일로 전달할 수 있습니다.</p><div class="choice-list"><button data-action="share">현재 선택 공유 링크 복사</button><button data-action="download">선택 정보 JSON 저장</button><label class="upload">JSON 가져오기<input id="importFile" type="file" accept="application/json,.json"></label><button data-action="reset">기본 선택으로 복원 · 베네치아</button></div><p id="importStatus" role="status"></p>`);}
 function download(){const a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(plan(),null,2)],{type:'application/json'}));a.href=url;a.download='여수-순천-선택.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 async function share(){const bytes=new TextEncoder().encode(JSON.stringify(plan())),encoded=btoa(String.fromCharCode(...bytes)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');const url=location.origin+location.pathname+'#plan='+encoded;try{await navigator.clipboard.writeText(url);$('importStatus').textContent='현재 선택을 담은 링크를 복사했습니다.';}catch{$('importStatus').innerHTML='<label>공유 링크<input id="shareUrl" readonly></label>';$('shareUrl').value=url;$('shareUrl').select();}}
-function help(){modal('사용 안내',`<p><b>베네치아 2박과 확정 관광 순서에서 먹을 곳을 고릅니다.</b></p><ul><li>추천은 전체 / 식당 / 카페 / 관광·숙소로 나뉩니다. ★ 저장 표시는 보내주신 네이버 목록에 있는 곳입니다.</li><li>첫날: 찹쌀떡 다음에 구디스파이 또는 화월당을 선택해 간단히 먹고 국가정원으로 갑니다.</li><li>첫날 저녁과 둘째 날 점심·저녁을 고르면 그 식당을 거치는 경로가 생깁니다. ×를 누르면 미선택으로 돌아갑니다.</li><li>아침은 숙소에서 쉬거나 간단히 먹고 생략할 수 있도록 별도 식당 경로를 두지 않았습니다.</li><li>마지막 날 빵집·카페를 선택하고, 점심은 여수 식당 또는 귀환 중 휴게소 중에서 고릅니다.</li><li>휴게소는 아직 위치를 정하지 않아 점을 임의로 찍지 않고 30분의 식사 시간만 귀환 계산에 더합니다.</li><li>OpenStreetMap 배경에 방문 순서와 화살표를 표시합니다. 실제 도로 길찾기는 네이버지도 앱 또는 웹 링크를 이용하세요.</li><li>경계선으로 화면 크기를 조절할 수 있습니다. 새로고침하면 50:25:25로 돌아오며 장소 선택은 저장됩니다.</li></ul><p class="fine">부산 출발·픽업은 동네 기준점입니다. 지도 배경은 온라인 연결이 필요하며, 장소 위치 일부는 근사 좌표입니다.</p>`);}
+function help(){modal('사용 안내',`<p><b>베네치아 2박과 확정 관광 순서에서 먹을 곳을 고릅니다.</b></p><ul><li>지도를 끌면 다른 지역도 볼 수 있으며, 축소하면 전국과 더 넓은 지역까지 볼 수 있습니다.</li><li>추천 카드에서 네이버지도를 바로 열거나 이름·안내 버튼으로 필요한 설명을 펼칩니다.</li><li>추천은 전체 / 식당 / 카페 / 관광·숙소로 나뉩니다. ★ 저장 표시는 보내주신 네이버 목록에 있는 곳입니다.</li><li>첫날: 찹쌀떡 다음에 구디스파이 또는 화월당을 선택해 간단히 먹고 국가정원으로 갑니다.</li><li>첫날 저녁과 둘째 날 점심·저녁을 고르면 그 식당을 거치는 경로가 생깁니다. ×를 누르면 미선택으로 돌아갑니다.</li><li>아침은 숙소에서 쉬거나 간단히 먹고 생략할 수 있도록 별도 식당 경로를 두지 않았습니다.</li><li>마지막 날 빵집·카페를 선택하고, 점심은 여수 식당 또는 귀환 중 휴게소 중에서 고릅니다.</li><li>휴게소는 아직 위치를 정하지 않아 점을 임의로 찍지 않고 30분의 식사 시간만 귀환 계산에 더합니다.</li><li>OpenStreetMap 배경에 방문 순서와 화살표를 표시합니다. 실제 도로 길찾기는 네이버지도 앱 또는 웹 링크를 이용하세요.</li><li>경계선으로 화면 크기를 조절할 수 있습니다. 새로고침하면 50:25:25로 돌아오며 장소 선택은 저장됩니다.</li></ul><p class="fine">부산 출발·픽업은 동네 기준점입니다. 지도 배경은 온라인 연결이 필요하며, 장소 위치 일부는 근사 좌표입니다.</p>`);}
 
 const PHONE_MEDIA='(max-width: 599px), (max-width: 1199px) and (max-height: 599px), (max-width: 759px) and (max-height: 759px)';
 const PORTRAIT_MEDIA='(min-width: 600px) and (min-height: 600px) and (orientation: portrait)';
@@ -177,6 +198,7 @@ document.addEventListener('click',e=>{
  else if(n=attr('clear-slot'))clearSlot(n.dataset.clearSlot);
  else if(n=attr('use'))selectCandidate(n.dataset.use);
  else if(n=attr('pick-slot'))applyChoice(n.dataset.pickSlot,n.dataset.poi);
+ else if(n=attr('expand'))toggleCard(n.dataset.expand);
  else if(n=attr('detail'))openDetail(n.dataset.detail);
  else if(n=attr('travel'))travelInfo(n.dataset.travel);
  else if(n=attr('view')){state.plannerView=n.dataset.view;renderPlanner();}
@@ -197,8 +219,8 @@ document.addEventListener('keydown',e=>{
  if((e.metaKey||e.ctrlKey)&&!typing&&['z','y'].includes(e.key.toLowerCase())){e.preventDefault();historyStep(e.key.toLowerCase()==='z'&&!e.shiftKey);}
 });
 $('brand').onclick=goNational;$('homeBtn').onclick=goNational;$('fitBtn').onclick=fitSelected;
-$('closeDetail').onclick=()=>$('detail').close();$('closeDialog').onclick=()=>$('dialog').close();
-for(const id of ['detail','dialog'])$(id).addEventListener('click',e=>{if(e.target===$(id)){const r=$(id).getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$(id).close();}});
+$('closeDialog').onclick=()=>$('dialog').close();
+for(const id of ['dialog'])$(id).addEventListener('click',e=>{if(e.target===$(id)){const r=$(id).getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)$(id).close();}});
 document.addEventListener('pointerdown',onPaneResizeDown);window.addEventListener('pointermove',onPaneResizeMove,{passive:false});window.addEventListener('pointerup',onPaneResizeEnd);window.addEventListener('pointercancel',onPaneResizeEnd);
 for(const id of ['mapDivider','planDivider']){const el=$(id);el.addEventListener('dblclick',resetPaneSizes);el.addEventListener('keydown',paneResizeKeyboard);el.addEventListener('lostpointercapture',e=>{if(paneGesture?.id===e.pointerId)cancelPaneResize();});}
 window.addEventListener('blur',cancelPaneResize);
